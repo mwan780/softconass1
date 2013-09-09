@@ -1,7 +1,6 @@
 #!/bin/nano
 
 "Work Type", "Date", "Time", "Activity", "Comments"
-"Start", "2013-09-09", "20:13:10", "coding", "Initialised Git"
-"Start", "2013-09-09", "20:13:27", "coding", "Initialised Git"
-"Update", "2013-09-09", "20:16:13", "Setup and Configuration", "Initialised Git Repository"
+"Start", "2013-09-09", "19:40:10", "Setup and Configuration", "Initialised Git Repository"
 "Update", "2013-09-09", "20:17:24", "Setup and Configuration", "Developed Give, Tar, Git and Diary Scripts"
+"Update", "2013-09-09", "20:18:08", "Setup and Configuration", "Downloaded and Organised Subset Examples"
