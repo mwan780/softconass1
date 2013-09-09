@@ -1,4 +1,4 @@
-
+#!/bin/sh
 
 cd /home/steven/Documents/softconass1
 /usr/bin/git pull
