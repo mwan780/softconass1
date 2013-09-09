@@ -1,3 +1,3 @@
-#!/usr/bin/sh
+#!/bin/sh
 
-tar -jcfv "git.tar" ".git"
+tar -jcf "git.tar" ".git"

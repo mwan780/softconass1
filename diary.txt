@@ -1,0 +1,7 @@
+#!/bin/nano
+
+"Work Type", "Date", "Time", "Activity", "Comments"
+"Start", "2013-09-09", "20:13:10", "coding", "Initialised Git"
+"Start", "2013-09-09", "20:13:27", "coding", "Initialised Git"
+"Update", "2013-09-09", "20:16:13", "Setup and Configuration", "Initialised Git Repository"
+"Update", "2013-09-09", "20:17:24", "Setup and Configuration", "Developed Give, Tar, Git and Diary Scripts"
