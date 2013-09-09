@@ -1,0 +1,14 @@
+Running Subset 1 Tests
+subset1.pl
+Converting perl-to-python for subset1.pl
+Running Subset 2 Tests
+subset2_answer0.pl subset2_answer1.pl subset2_answer2.pl subset2_answer3.pl subset2_answer4.pl
+Converting perl-to-python for subset2_answer0.pl
+Running Subset 3 Tests
+subset3_answer5.pl subset3_answer6.pl subset3_five.pl subset3_iota.pl
+Converting perl-to-python for subset3_answer5.pl
+Running Subset 4 Tests
+subset4_odd.pl subset4_size.pl
+Converting perl-to-python for subset4_odd.pl
+Running Subset 5 Tests
+
