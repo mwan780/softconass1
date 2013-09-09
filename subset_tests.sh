@@ -4,10 +4,34 @@
 # Author:- Steven Falconieri    
 # *********************************
 # *********************************
+program_name="`echo $0 | cut -f2 -d '/'`"
 PID="`ps -ea | grep $0`"
-tmp_file="$0$(date +%Y-%m-%d_%H:%M:%S)$PID.tmp"
-tmp_file="`echo $tmp_file | cut -f2 -d '/'`"
-	cd test    # Change into Subfolder
+tmp_file="$program_name$(date +%Y-%m-%d_%H:%M:%S)$PID.tmp"
+
+# Perform temp file cleanup
+	echo "******************************"
+	echo "******************************"
+	echo "*** Performing Temp Cleanup***"
+	echo "******************************"
+	echo "******************************"
+cd test
+for i in 1 2
+do 
+	old_temps="`ls -1 | egrep -i '$program_name.*\.tmp'`"
+	for temp in $old_temps
+	do
+		rm $temp
+		result=$?
+		if [ $result -eq 0 ]; then
+			echo "Old Temp File $temp was deleted"
+		fi
+	done
+	cd ..
+done
+cd test
+
+
+
 for subset in 1 2 3 4 5 
 do 
 	echo "******************************"
@@ -22,29 +46,34 @@ do
 		curr_file_name="`echo $answer | cut -f1 -d '.'`"
 		echo "Converting perl-to-python for $answer"
 		../perl2python.pl $answer > $tmp_file
-		if [ $? -eq 0 ]; then 
+		result=$?
+		if [ $result -ne 0 ]; then 
+			echo result was $result
 			echo "_______________________$0 : Error - perl2python output to temp file failed" >&2
 			break;
 		fi 
 		diff -q $curr_file_name.py $tmp_file
-		if [ !$? ]; then 
-			echo "Direct Comparison Source Code Check........................ Failed"
+		result=$?
+		if [ $result -ne 0 ]; then
+			echo "Direct Comparison Source Code Check.......................$result... Failed"
 		else
-			echo "Direct Comparison Source Code Check........................ Passed"
+			echo "Direct Comparison Source Code Check.......................$result... Passed"
 	    fi
 	    chmod +x $tmp_file > /dev/null
 	    ./$tmp_file > /dev/null
-	    if [ !$? ]; then
-	    	echo "Compilation Test........................................... Failed"
+	    result=$?
+		if [ $result -ne 0 ]; then
+	    	echo "Compilation Test..........................................$result... Failed"
 	    else
-	    	echo "Compilation Test........................................... Passed"
+	    	echo "Compilation Test..........................................$result... Passed"
 		    ./$tmp_file > generatedoutput$tmp_file
 	    	./$curr_file_name.py > expectedoutput$tmp_file
 	    	diff -q generatedoutput$tmp_file expectedoutput$tmp_file
-	    	if [ !$? ]; then
-		     	echo "Program Output Comparison Check............................ Failed"
+	    	result=$?
+			if [ $result -ne 0 ]; then
+		     	echo "Program Output Comparison Check...........................$result... Failed"
 		    else
-	    		echo "Program Output Comparison Check............................ Passed"
+	    		echo "Program Output Comparison Check...........................$result... Passed"
 	    	fi
 	    fi
 	done
