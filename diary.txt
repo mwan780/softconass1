@@ -13,3 +13,7 @@
 "Update", "2013-09-10", "15:34:11", "Debugging", "Fixed argument parsing to subset 4 programs in automated tests"
 "Update", "2013-09-10", "15:43:38", "Coding", "Updated tests to include the test?.pl programs"
 "Update", "2013-09-10", "17:22:41", "Coding Tests", "Created 3 Tests for the assignment including printing, if and for statements"
+"Start", "2013-09-12", "10:25:56", "Coding", "Start initial compiler processing and structure breakdown"
+"Update", "2013-09-12", "10:46:10", "Coding", "Made changes to split multiple lines of code on a single line"
+"Update", "2013-09-12", "10:46:51", "Demo", "Created Demo0 to test if program would handle multiple lines of code on a single line with a \; seperator"
+"Stop", "2013-09-12", "11:29:49", "Coding", "Created regex to identify comments and if statements"
