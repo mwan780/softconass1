@@ -1,1 +1,2 @@
-#!/bin/perl -w
+#!/usr/bin/perl -w
+print "hello\n"; print "Goodbye\n";
