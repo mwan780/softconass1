@@ -1,0 +1,86 @@
+Running subset_tests.sh
+******************************
+******************************
+*** Performing Temp Cleanup***
+******************************
+******************************
+
+
+
+******************************
+******************************
+*Running Subset 1 Tests*
+******************************
+******************************
+Testing .... subset1.pl
+test1.pl
+Converting perl-to-python for subset1.pl
+Files subset1.py and subset_tests.sh2013-09-13_20:38:53.tmp differ
+Direct Comparison Source Code Check.......................1... Failed
+Compilation Test..........................................0... Passed
+Program Output Comparison Check...........................0... Passed
+
+
+Converting perl-to-python for test1.pl
+Direct Comparison Source Code Check.......................2... Failed
+Compilation Test..........................................255... Failed
+
+
+
+
+
+
+******************************
+******************************
+*Running Subset 2 Tests*
+******************************
+******************************
+Testing .... subset2_answer0.pl
+subset2_answer1.pl
+subset2_answer2.pl
+subset2_answer3.pl
+subset2_answer4.pl
+test2.pl
+Converting perl-to-python for subset2_answer0.pl
+Files subset2_answer0.py and subset_tests.sh2013-09-13_20:38:53.tmp differ
+Direct Comparison Source Code Check.......................1... Failed
+Compilation Test..........................................0... Passed
+Files generatedoutputsubset_tests.sh2013-09-13_20:38:53.tmp and expectedoutputsubset_tests.sh2013-09-13_20:38:53.tmp differ
+Program Output Comparison Check...........................1... Failed
+
+
+Converting perl-to-python for subset2_answer1.pl
+Files subset2_answer1.py and subset_tests.sh2013-09-13_20:38:53.tmp differ
+Direct Comparison Source Code Check.......................1... Failed
+Compilation Test..........................................0... Passed
+Files generatedoutputsubset_tests.sh2013-09-13_20:38:53.tmp and expectedoutputsubset_tests.sh2013-09-13_20:38:53.tmp differ
+Program Output Comparison Check...........................1... Failed
+
+
+Converting perl-to-python for subset2_answer2.pl
+Files subset2_answer2.py and subset_tests.sh2013-09-13_20:38:53.tmp differ
+Direct Comparison Source Code Check.......................1... Failed
+Compilation Test..........................................0... Passed
+Files generatedoutputsubset_tests.sh2013-09-13_20:38:53.tmp and expectedoutputsubset_tests.sh2013-09-13_20:38:53.tmp differ
+Program Output Comparison Check...........................1... Failed
+
+
+Converting perl-to-python for subset2_answer3.pl
+Files subset2_answer3.py and subset_tests.sh2013-09-13_20:38:53.tmp differ
+Direct Comparison Source Code Check.......................1... Failed
+Compilation Test..........................................0... Passed
+Files generatedoutputsubset_tests.sh2013-09-13_20:38:53.tmp and expectedoutputsubset_tests.sh2013-09-13_20:38:53.tmp differ
+Program Output Comparison Check...........................1... Failed
+
+
+Converting perl-to-python for subset2_answer4.pl
+Files subset2_answer4.py and subset_tests.sh2013-09-13_20:38:53.tmp differ
+Direct Comparison Source Code Check.......................1... Failed
+Compilation Test..........................................0... Passed
+Files generatedoutputsubset_tests.sh2013-09-13_20:38:53.tmp and expectedoutputsubset_tests.sh2013-09-13_20:38:53.tmp differ
+Program Output Comparison Check...........................1... Failed
+
+
+Converting perl-to-python for test2.pl
+Direct Comparison Source Code Check.......................2... Failed
+Compilation Test..........................................0... Passed
