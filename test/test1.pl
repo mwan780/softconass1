@@ -1,17 +1,17 @@
 #!/usr/bin/perl -w
 
 if ( "1" ) {
- 	print "1\n";
+    print "1\n";
 }
 
 print "Hello\n" if 1;
 
 if ( "text" ) {
-	print "Equal\n";
+    print "Equal\n";
 } elsif ( "text2" ) {
-	print "Also Equal\n";
+    print "Also Equal\n";
 } else {
-	print "Not Equal\n";
+    print "Not Equal\n";
 }
 
 

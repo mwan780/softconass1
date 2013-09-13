@@ -17,3 +17,8 @@
 "Update", "2013-09-12", "10:46:10", "Coding", "Made changes to split multiple lines of code on a single line"
 "Update", "2013-09-12", "10:46:51", "Demo", "Created Demo0 to test if program would handle multiple lines of code on a single line with a \; seperator"
 "Stop", "2013-09-12", "11:29:49", "Coding", "Created regex to identify comments and if statements"
+"Start", "2013-09-13", "13:14:52", "Coding", "Implementing Recursive conversion for sub (loop) level processing"
+"Update", "2013-09-13", "16:02:07", "Coding and Debugging", "Wrote Comprehensive regex to match print lines and bracketing"
+"Update", "2013-09-13", "16:02:26", "Coding and Debugging", "Implemented Print line handling"
+"Update", "2013-09-13", "16:15:09", "Coding and Debugging", "Implemented Print line handling"
+"Update", "2013-09-13", "16:30:45", "Coding and Testing", "Implemented Print translation"
