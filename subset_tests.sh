@@ -57,7 +57,9 @@ do
 	for answer in $files
 	do 	
 		curr_file_name="`echo $answer | cut -f1 -d '.'`"
+		echo "######################################"
 		echo "Converting perl-to-python for $answer"
+		echo "######################################"
 		../perl2python.pl $answer > $tmp_file
 		result=$?
 		if [ $result -ne 0 ]; then 
@@ -65,12 +67,14 @@ do
 			echo "$0 : Error - perl2python output to temp file failed" >&2
 			break;
 		fi 
-		diff -q $curr_file_name.py $tmp_file
+		diff -y $curr_file_name.py $tmp_file
 		result=$?
+		echo
+		echo "Test:- $curr_file_name:-"
 		if [ $result -ne 0 ]; then
-			echo "Direct Comparison Source Code Check.......................$result... Failed"
+			echo "Test:- Direct Comparison Source Code Check......................$result... Failed ............ $curr_file_name"
 		else
-			echo "Direct Comparison Source Code Check.......................$result... Passed"
+			echo "Test:- Direct Comparison Source Code Check......................$result... Passed ............ $curr_file_name"
 	    fi
 	    chmod +x $tmp_file > /dev/null
 	    if [ $subset -eq 4 ]; then
@@ -80,11 +84,11 @@ do
 	    	./$tmp_file > /dev/null
 	    	result=$?
 	    fi
-	       
+	    #echo "Test:- $curr_file_name:-"
 		if [ $result -ne 0 ]; then
-	    	echo "Compilation Test..........................................$result... Failed"
+	    	echo "Test:- Compilation Test.........................................$result... Failed ............ $curr_file_name"
 	    else
-	    	echo "Compilation Test..........................................$result... Passed"
+	    	echo "Test:- Compilation Test.........................................$result... Passed ............ $curr_file_name"
 		  	if [ $subset -eq 4 ]; then
 		  		echo "Generated Output"
 
@@ -98,12 +102,14 @@ do
 	    		./$curr_file_name.py > expectedoutput$tmp_file
 	    		die $?
 	    	fi
-	    	diff -q generatedoutput$tmp_file expectedoutput$tmp_file
+	    	diff -y generatedoutput$tmp_file expectedoutput$tmp_file
 	    	result=$?
+			echo
+			#echo "Test:- $curr_file_name:-"
 			if [ $result -ne 0 ]; then
-		     	echo "Program Output Comparison Check...........................$result... Failed"
+		     	echo "Test:- Program Output Comparison Check..........................$result... Failed ............ $curr_file_name"
 		    else
-	    		echo "Program Output Comparison Check...........................$result... Passed"
+	    		echo "Test:- Program Output Comparison Check..........................$result... Passed ............ $curr_file_name"
 	    	fi
 	    fi
 	    echo

@@ -19,6 +19,17 @@ sub output_python ( $$ ) {
 	print "$python";
 }
 
+sub output_python_line ( $$$ ) {
+	my ($tab_depth, $python, $last_line) = @_;
+	$python = strip_dollar_signs($python);
+	print "Output:- " if $debug;
+	for($count = 0; $count < $tab_depth; $count++) {
+		print "    ";
+	}
+	print "$python";
+	print "\n" if !$last_line;
+}
+
 sub debug  ( $ )  {
 	my ($message) = @_;
 	print "Debug:- $message\n" if $debug;
@@ -141,7 +152,7 @@ sub convert_to_python ( $$@ ) {
 	$curr_line = $line_num;
 	for($curr_line = $line_num; $curr_line <= $#input; $curr_line++) {
 		# Break up multiple lines of code into single lines
-		
+		$last_line = ($curr_line == $#input);
 		$line = "$input[$curr_line]";
 		debug("Current line number = $curr_line");
 		if(!empty_line($line)) {
@@ -152,12 +163,21 @@ sub convert_to_python ( $$@ ) {
 				# Striping on output instead --- should be able to delete this. $single_line = strip_dollar_signs($single_line);
 				debug("Input:- $single_line");
 				if(is_closing_brace_line($single_line)) {
+					# #######################################
+					# ###### Sole Closing Brace #############
+					# #######################################
 					debug("Line Type:- Closing Brace ");
 					return ($curr_line);
 				} elsif (is_opening_brace_line($single_line)) {
+					# #######################################
+					# ###### Sole Opening Brace #############
+					# #######################################
 					# Do Nothing as it has been implemented in if statement
 					debug("Line Type:- Opening Brace ");
 				} elsif (is_comment_line($single_line)) {
+					# #######################################
+					# ############## Comments ###############
+					# #######################################
 					# Print Comments Directly Out and removing leading spaces
 					debug("Line Type:- Comments ");
 					$single_line =~ /(#.*)/;
@@ -165,36 +185,40 @@ sub convert_to_python ( $$@ ) {
 					if($curr_line == 0) {
 						$single_line =~ s/perl -w/python2.7 \-u/;
 					}
-					output_python($tab_depth, "$single_line\n");
+					output_python_line($tab_depth, "$single_line", $last_line);
 				} elsif (var_declaration($single_line)) { 
-					# Variabe Declaration
+					# #######################################
+					# #######  Variabe Declaration  #########
+					# #######################################
 					debug("Line Type:- Variable Declaration ");
-					output_python($tab_depth, "$single_line\n");
+					output_python_line($tab_depth, "$single_line", $last_line);
 					while($single_line =~ /\$(\w+)/g) {
-						$vars{$line}{$1} = 1;	# This may be useful later otherwise delete it
+						#$vars{$line}{$1} = 1;	# This may be useful later otherwise delete it
 					}
 				} elsif ($single_line =~ /\s*if\s*\(?/) {
-					# If Statements
+					# #######################################
+					# ########### If Statements #############
+					# #######################################
 					debug("Line Type:- If");
 					if (has_strictly_opening_brace($single_line)) {
-						# Multi Line If Statement
-						# if (condition) {
-						# }
+						# ############ Multi Line If Statement
+						# ############ if (condition) {
+						# ############ }
 						debug("Line Type:- If Type:- Multi Line");
 						$single_line =~ /^\s*if\s*(\([^\)]+\))/ or die "$0 : Unable to match multi line if condition";
 						$condition = $1;
 						$condition =~ tr/[\)\()]//;
-						output_python($tab_depth, "if ($condition):\n");
+						output_python_line($tab_depth, "if ($condition):", $last_line);
 						$curr_line = convert_to_python($tab_depth+1, $curr_line+1, @input);
 					} elsif (has_both_braces($single_line)) {
-						# Single Line If
-						# if condition { };
+						# ############ Single Line If
+						# ############ if condition { };
 						debug("Line Type:- If Type:- Single Line with braces");
 						$if_statement = strip_outermost_braces($single_line);
-						output_python($tab_depth, "$if_statement\n");		
+						output_python_line($tab_depth, "$if_statement", $last_line);		
 					} elsif (reverse_order_if($single_line)) {
-						# Reverse order declarion 
-						# command if condition;
+						# ############ Reverse order declarion 
+						# ############ command if condition;
 						debug("Line Type:- If Type:- Reverse Order");
 						$single_line =~ /^(.*)if(.*)/ or die "$0 : Unable to match single line if command at line ".($curr_line+1);
 						#$single_line =~ /\s*([\w\s]+)if/ 
@@ -203,35 +227,48 @@ sub convert_to_python ( $$@ ) {
 						#$single_line =~ /^.*?if(.+);/ or die "$0 : Unable to match single line if condition at line ".($curr_line+1);
 						$condition = $2;
 						$condition =~ tr/[\)\(]//;
-						output_python($tab_depth, "if ($condition): $command_to_exec\n");
+						output_python_line($tab_depth, "if ($condition): $command_to_exec", $last_line);
 					} elsif (!has_opening_brace($single_line) && !reverse_order_if($single_line)) {
-						# Not reverse order if statement and no opening bracket
+						# ############ Not reverse order if statement and no opening bracket
+						# ############ Assumed Opening Brace on next line
 						debug("Line Type:- If Type:- Brace on Next line");
-						output_python($tab_depth, "$single_line:\n");
+						output_python_line($tab_depth, "$single_line:", $last_line);
 						$curr_line = convert_to_python($tab_depth+1, $curr_line+1, @input);
 					} elsif ($single_line =~ /elsif\s*(\(?.*)\s*$/) {
+						# #######################################
+						# ######### ElsIf Statements ############
+						# #######################################
 						$condition = $1;
 						debug("Line Type:- Else If ");
 						$condition = strip_outermost_braces($condition);
-						output_python(($tab_depth-1), "elif $condition\n");
+						output_python_line(($tab_depth-1), "elif $condition", $last_line);
 					} else {
 						debug("Line Type:- If Type:- Undertermined !");
-						output_python($tab_depth, "# $single_line\n");
+						output_python_line($tab_depth, "# $single_line", $last_line);
 					}
 				} elsif (else_line($single_line)) {
+					# #######################################
+					# ######### Else Statements #############
+					# #######################################
 					debug("Line Type:- Else ");
 					debug("Line Type:- Else Type :- Else ");
-					output_python(($tab_depth-1), "else:\n");
+					output_python_line(($tab_depth-1), "else:", $last_line);
 				} elsif (print_line($single_line)) {
+					# #######################################
+					# ###############  Prints  ##############
+					# #######################################
 					debug("Line Type:- Print ");
 					$print_line = strip_outermost_parentheses(get_print($single_line));
 					$print_line = strip_new_line($print_line);
 					$print_line =~ s/[\"\']\s*\$(\w+)\s*[\"\']/$1 /g;
 
-					output_python($tab_depth, "$print_line\n");
+					output_python_line($tab_depth, "$print_line", $last_line);					
 				} else {
+					# #######################################
+					# ########### Undertermined #############
+					# #######################################
 					debug("Line Type:- Undertermined ");
-					output_python($tab_depth, "# $single_line\n");
+					output_python_line($tab_depth, "# $single_line", $last_line);
 				}
 				debug("");
 				debug("");

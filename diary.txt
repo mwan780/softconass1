@@ -26,3 +26,6 @@
 "Start", "2013-09-13", "20:46:06", "Coding", "Variable Handling"
 "Start", "2013-09-13", "20:51:46", "Coding", "Variable Handling"
 "Stop", "2013-09-13", "21:58:17", "Coding and Testing", "Implemented Variable Handling and printing"
+"Start", "2013-09-14", "20:26:25", "Coding", "Formatted code and added comments to make more readable"
+"Update", "2013-09-14", "20:26:53", "Testing", "Fixed tests to print diff output side by side for debugging"
+"Update", "2013-09-14", "20:27:30", "Coding", "Implemented conditional new line for print except for last line of input"
