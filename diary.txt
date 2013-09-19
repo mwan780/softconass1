@@ -29,3 +29,4 @@
 "Start", "2013-09-14", "20:26:25", "Coding", "Formatted code and added comments to make more readable"
 "Update", "2013-09-14", "20:26:53", "Testing", "Fixed tests to print diff output side by side for debugging"
 "Update", "2013-09-14", "20:27:30", "Coding", "Implemented conditional new line for print except for last line of input"
+"Stop", "2013-09-14", "20:46:41", "Testing", "Formated Tests for grep filtering purposes"
