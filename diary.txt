@@ -37,3 +37,5 @@
 "Update", "2013-09-20", "16:52:41", "Coding and Debugging", "Implemented standed standard for(init;condition;exec) conversion to while equivalent loop"
 "Update", "2013-09-20", "17:54:34", "Coding", "Implemented pre/post inc/dec filter for python output"
 "Stop", "2013-09-20", "18:42:59", "Coding", "Implemented single line var inc/dec and basic foreach functionality"
+"Update", "2013-09-20", "20:40:34", "Testing", "Setup individual file tester"
+"Update", "2013-09-20", "21:16:21", "Coding", "Implemented while handling"

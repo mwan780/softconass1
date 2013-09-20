@@ -55,6 +55,8 @@ sub strip_outermost_braces ( $ );
 sub strip_outermost_parentheses ( $ );
 
 
+
+
 # #############################################################################################
 # #############################################################################################
 # #############################################################################################
@@ -71,7 +73,15 @@ if($#ARGV > 0 && $ARGV[0] =~ /\-d/) {
 	shift @ARGV;
 } 
 
-
+%keywords = (
+	'last' => 'break',
+	'continue' => 'continue',
+	'print' => 'print',
+	'split' => '',
+	'join' => '',
+	'=~ s/' => 're.sub',
+	'=~ /' => 're.match',
+);
 
 # Process Files
 # Check if any files have been parsed as arguments
@@ -177,6 +187,7 @@ sub convert_to_python ( $$@ ) {
 				chomp $single_line; 					# Is Force added to every line at the end
 				# Striping on output instead --- should be able to delete this. $single_line = strip_dollar_signs($single_line);
 				debug("Input:- $single_line");
+				$single_line = strip_spaces($single_line);
 				if(is_closing_brace_line($single_line)) {
 					# #######################################
 					# ###### Sole Closing Brace #############
@@ -333,6 +344,15 @@ sub convert_to_python ( $$@ ) {
 						debug("Line Type:- For Type :- Undertimed ");
 						output_python_line($tab_depth, "# $single_line", $last_line);
 					}
+				} elsif (is_while_statement_line($single_line)) {
+					# #######################################
+					# ###########  While Loops  #############
+					# #######################################
+					debug("Line Type:- While ");
+					my $condition = get_while_condition($single_line);
+					$condition = strip_outermost_parentheses($condition);
+					output_python_line($tab_depth, "while ($condition):", $last_line);
+					$curr_line = convert_to_python($tab_depth+1, $curr_line+1, @input);
 				} elsif (is_print_line($single_line)) {
 					# #######################################
 					# ###############  Prints  ##############
@@ -343,6 +363,25 @@ sub convert_to_python ( $$@ ) {
 					$print_line =~ s/[\"\']\s*\$(\w+)\s*[\"\']/$1 /g;
 
 					output_python_line($tab_depth, "$print_line", $last_line);					
+				} elsif (is_single_word_line(strip_spaces($single_line))) {
+					# #######################################
+					# #####  Keyword or Function Call  ######
+					# #######################################
+					$single_line = strip_spaces($single_line);
+					if(defined $keywords[$single_line]) {
+					 	debug("Line Type:- Keyword ");
+						output_python_line($tab_depth, "$keywords[$single_line]", $last_line);
+					} else {
+						# #######################################
+						# ########### Undertermined #############
+						# #######################################
+						debug("Line Type:- Undertermined ");
+						output_python_line($tab_depth, "# $single_line", $last_line);
+					}
+
+				} elsif (has_print_call($single_line)) {
+					debug("Line Type:- Print Maybe");
+					output_python_line($tab_depth, "$single_line", $last_line);
 				} else {
 					# #######################################
 					# ########### Undertermined #############
@@ -467,6 +506,10 @@ sub has_prepost_incdec ( $ ) {
 	return (has_pre_inc($line) || has_pre_dec($line) || has_post_inc($line) || has_post_dec($line));
 }
 
+sub has_print_call ( $ ) {
+	my ($line) = @_;
+	return $line =~ /(\s|^)print\s*/;
+}
 
 # ##########################################
 # ########## Is Regex Functions ############
@@ -532,6 +575,16 @@ sub is_prepost_incdec_line ( $ ) {
 	return $line =~ /^\s*((((\-\-)|(\+\+))\$\w+)|(\$\w+((\-\-)|(\+\+))))\s*$/;
 }
 
+sub is_while_statement_line ( $ ) {
+	my ($line) = @_;
+	return $line =~ /^\s*while\(?.*?\)\s*\{?\s*$/;
+}
+
+sub is_single_word_line ( $ ) {
+	my ($line) = @_;
+	return $line =~ /^*\S+$/;
+}
+
 # ##########################################
 # ######## Strip Regex Functions ###########
 # ##########################################
@@ -576,6 +629,13 @@ sub strip_invalid_python ( $ ) {
 sub strip_prepost_incdec ( $ ) {
 	my ($line) = @_;
 	$line =~ s/((\-\-)|(\+\+))//;
+	return $line;	
+}
+
+sub strip_spaces ( $ ) {
+	my ($line) = @_;
+	$line =~ s/^\s+//;
+	$line =~ s/\s*$//;
 	return $line;	
 }
 
@@ -644,3 +704,7 @@ sub get_foreach_set ( $ ) {
 	return $2 if $line =~ /\s*foreach\s*(.*?)\s*(\(.*?\))\s*\{?\s*$/;
 }
 
+sub get_while_condition ( $ ) {
+	my ($line) = @_;
+	return $1 if $line =~ /^\s*while\(?(.*?)\)\s*\{?\s*$/;
+}

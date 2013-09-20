@@ -18,6 +18,8 @@ sub get_for_statement_postexec ( $ ) {
 }
 
 while(<>) {
+	print if /\s?print\s*/;
+}
 	$initialisation = get_for_statement_init($_); 
 	$condition = get_for_statement_condition($_);
 	@postexecution = get_for_statement_postexec($_);
@@ -25,4 +27,4 @@ while(<>) {
 	print "cond = $condition\n";
 	print "exec = @postexecution\n";
 	#print if /\s*foreach\s*(.*?)\s*(\(.*?\))\s*\{?\s*$/;
-}
+
