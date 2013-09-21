@@ -300,10 +300,11 @@ sub convert_to_python ( $$$ ) {
 					# #######################################
 					debug("Line Type:- Print ");
 					my $print_line = strip_outermost_parentheses(get_print($single_line));
-					$print_line = strip_new_line($print_line);
+					$print_line = strip_new_line($print_line) if has_explicit_new_line($print_line);
 					$print_line =~ s/[\"\']\s*\$(\w+)\s*[\"\']/$1 /g;
+					$print_line .= "," if !has_explicit_new_line($single_line);					
+					output_python_line($tab_depth, "$print_line", $last_line);
 
-					output_python_line($tab_depth, "$print_line", $last_line);					
 				} elsif (is_single_word_line(strip_outer_spaces($single_line))) {
 					# #######################################
 					# #####  Keyword or Function Call  ######
@@ -335,7 +336,7 @@ sub convert_to_python ( $$$ ) {
 			}
 		} else {
 			debug("Line Type:- Empty ");
-			#output_python_line($tab_depth, "", $last_line);
+			output_python_line($tab_depth, "", $last_line);
 		}
 	}
 	return $curr_line if $curr_line >= $line_num;
@@ -479,6 +480,10 @@ sub convert_for_statement_to_python ( $$$ ) {
 		output_python($tab_depth, "for $variable in ");
 		convert_set_to_python($set);
 		output_python($tab_depth, ":\n");
+		$curr_line = convert_to_python($tab_depth+1, $curr_line+1, $Input);
+	} elsif (is_for_var_in_set($single_line)) {
+		$single_line = strip_outermost_braces($single_line);
+		output_python_line($tab_depth, "$single_line:", $last_line);
 		$curr_line = convert_to_python($tab_depth+1, $curr_line+1, $Input);
 	} else {
 		# **************************************
@@ -639,6 +644,11 @@ sub has_system_access  ( $ ) {
 	return $line =~ /((open)|(close)|(\<\>)|(STDIN)|(STDOUT)|(STDERR)|(\&1)|(\&2))/;
 }
 
+sub has_explicit_new_line  ( $ ) {
+	my ($line) = @_;
+	return $line =~ /\".*?\\n\.*?"/;
+}
+
 # ##########################################
 # ########## Is Regex Functions ############
 # ##########################################
@@ -696,6 +706,11 @@ sub is_standard_for_statement_line ( $ ) {
 sub is_foreach_statement_line ( $ ) {
 	my ($line) = @_;
 	return $line =~ /\s*foreach\s*(.*?)\s*(\(.*?\))\s*\{?\s*$/;
+}
+
+sub is_for_var_in_set ( $ ) {
+	my ($line) = @_;
+	return $line =~ /\s*for\s*(.*?)\s*in\s*(\(?.*?\)?)\s*\{?\s*$/;
 }
 
 sub is_prepost_incdec_line ( $ ) {
@@ -765,11 +780,35 @@ sub strip_logic_operators ( $ ) {
 	return $line;
 }
 
+sub strip_input_methods ( $ ) {
+	my ($line) = @_;
+	$line =~ s/\<STDIN\>/sys.stdin.readline()/g;
+	$line =~ s/\<STDOUT\>/sys.stdout.write()/g;
+	$line =~ s/\<STDERR\>/sys.stderr.write()/g;
+	$line =~ s/\&1/sys.stdout.write()/g;
+	$line =~ s/\&2/sys.stderr.write()/g;
+	$line =~ s/\$ARGV\[(.*)\]/sys.argv[$1]/g;
+	$line =~ s/\@ARGV/sys.argv[1:]/g;
+	
+	return $line;
+}
+
+sub strip_comparators ( $ ) {
+	my ($line) = @_;
+	$line =~ s/\seq\s/ == /g;
+	return $line;
+}
+
 sub strip_invalid_python ( $ ) {
 	my ($line) = @_;
+	$line = strip_semi_colon($line);
+
+	$line = strip_logic_operators($line);
+	$line = strip_comparators($line);
+	$line = strip_input_methods($line);
+
 	$line = strip_dollar_signs($line);
 	$line = strip_at_signs($line);
-	$line = strip_logic_operators($line);
 	#print "should be no dol signs here :- $line\n";
 	my @valid_python = convert_prepost_incdec($line);
 	return @valid_python;
@@ -783,7 +822,7 @@ sub strip_semi_colon ( $ ) {
 
 sub strip_prepost_incdec ( $ ) {
 	my ($line) = @_;
-	$line =~ s/((\-\-)|(\+\+))//;
+	$line =~ s/((\-\-)|(\+\+))//g;
 	return $line;	
 }
 
