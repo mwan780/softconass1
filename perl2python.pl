@@ -190,12 +190,14 @@ sub debug  ( $ )  {
 sub convert_to_python ( $$$ ) {
 	my ($tab_depth, $line_num, $Input) = @_;
 	debug("Tab Depth = $tab_depth and input line number = ".$line_num."/".($#{$Input}+1));
+	die "Line Number $line_num not in file\n" if ($line_num < 0 || $line_num > $#{$Input});
 	my $curr_line = $line_num;
 	for($curr_line = $line_num; $curr_line <= $#{$Input}; $curr_line++) {
 		# Break up multiple lines of code into single lines
 		my $last_line = ($curr_line == $#{$Input});
 		my $line = "${$Input}[$curr_line]";
 		debug("Current line number = $curr_line");
+		chomp $line;
 		if(!is_empty_line($line)) {
 			debug("Ignore ; since for statement line") if is_standard_for_statement_line($line);
 			my @multiple_lines = split (/;\s*/, $line) if !is_standard_for_statement_line($line);
@@ -204,13 +206,14 @@ sub convert_to_python ( $$$ ) {
 			foreach my $single_line (@multiple_lines) {
 				chomp $single_line; 					# Is Force added to every line at the end
 				# Striping on output instead --- should be able to delete this. $single_line = strip_dollar_signs($single_line);
-				debug("Input:- $single_line");
 				$single_line = strip_outer_spaces($single_line);
+				debug("Input:- $single_line");
 				if(is_closing_brace_line($single_line)) {
 					# #######################################
 					# ###### Sole Closing Brace #############
 					# #######################################
 					debug("Line Type:- Closing Brace ");
+					debug("Returning after line $curr_line and depth $tab_depth");
 					return ($curr_line);
 				} elsif (is_opening_brace_line($single_line)) {
 					# #######################################
@@ -228,9 +231,9 @@ sub convert_to_python ( $$$ ) {
 					$single_line = $1;
 					my $first_line = ($curr_line == 0);
 					# Convert Shabang 
-					$single_line =~ s/perl -w/python2.7 \-u/ if $first_line;
+					$single_line =~ s/perl \-w/python2.7 \-u/;
 					# Print all consecutive comment lines
-					output_python_line($tab_depth, ${$Input}[$curr_line], $last_line);
+					output_python_line($tab_depth, $single_line, $last_line);
 					while(is_comment_line(${$Input}[$curr_line+1])) {
 						# Note ++ increments the current line counter for accurate return val
 						debug("Current line number = ".(1+$curr_line));
@@ -245,7 +248,7 @@ sub convert_to_python ( $$$ ) {
 					# #######################################
 					debug("Line Type:- Variable Declaration ");
 					output_python_line($tab_depth, "$single_line", $last_line);
-					while($single_line =~ /\$(\w+)/g) {
+					while($single_line =~ /[\$\@\%](\w+)/g) {
 						#$vars{$line}{$1} = 1;	# This may be useful later otherwise delete it
 					}
 				} elsif (is_function_declaration($single_line)) { 
@@ -253,9 +256,9 @@ sub convert_to_python ( $$$ ) {
 					# #######  Function Declaration  ########
 					# #######################################
 					output_python($tab_depth, "$keywords{'sub'} ");
-					output_python($tab_depth, get_function_name($single_line));
-					output_python($tab_depth, get_function_args($single_line)); 
-					output_python($tab_depth, ":\n"); 
+					output_python(0, get_function_name($single_line));
+					output_python(0, get_function_args($single_line)); 
+					output_python(0, ":\n"); 
 					$curr_line = convert_to_python($tab_depth+1, $curr_line+1, $Input);
 				} elsif (is_prepost_incdec_line($single_line)) {
 					# #######################################
@@ -332,9 +335,11 @@ sub convert_to_python ( $$$ ) {
 			}
 		} else {
 			debug("Line Type:- Empty ");
-			output_python_line($tab_depth, "", $last_line);
+			#output_python_line($tab_depth, "", $last_line);
 		}
 	}
+	return $curr_line if $curr_line >= $line_num;
+	die "Main: Current Line out of bounds";
 }
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -347,9 +352,11 @@ sub convert_to_python ( $$$ ) {
 # Returns                    :- int Number of last line converted              %
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sub convert_if_statement_to_python ( $$$ ) {
-	my ($tab_depth, $curr_line, $Input) = @_;
+	my ($tab_depth, $line_num, $Input) = @_;
+	my $curr_line = $line_num;
 	my $last_line = ($curr_line == $#{$Input});
 	my $single_line = ${$Input}[$curr_line];
+	die "Line Number $line_num not in file\n" if ($line_num < 0 || $line_num > $#{$Input});
 	chomp $single_line;
 	if (has_strictly_opening_brace($single_line)) {
 		# **************************************
@@ -378,10 +385,10 @@ sub convert_if_statement_to_python ( $$$ ) {
 		# command if condition;
 		# **************************************
 		debug("Line Type:- If Type:- Reverse Order");
-		$single_line =~ /^(.*)if(.*)/ or die "$0 : Unable to match single line if command at line ".($curr_line+1);
+		$single_line =~ /^(.*)if(.*)\;?$/ or die "$0 : Unable to match single line if command at line ".($curr_line+1);
 		push (my @command_to_exec, $1);
 		my $condition = $2;
-		$condition =~ strip_condition_padding($condition);
+		$condition = strip_condition_padding($condition);
 		output_python($tab_depth, "if ($condition): ");
 		my $Command_ref = \@command_to_exec;
 		convert_to_python(0, 0, $Command_ref);
@@ -415,7 +422,8 @@ sub convert_if_statement_to_python ( $$$ ) {
 		output_python_line($tab_depth, "# $single_line", $last_line);
 		$curr_line = convert_to_python($tab_depth+1, $curr_line+1, $Input);
 	}
-	return $curr_line;
+	return $curr_line if $curr_line >= $line_num;
+	die "If: Current Line out of bounds";
 }
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -428,9 +436,11 @@ sub convert_if_statement_to_python ( $$$ ) {
 # Returns                    :- int Number of last line converted              %
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sub convert_for_statement_to_python ( $$$ ) {
-	my ($tab_depth, $curr_line, $Input) = @_;
+	my ($tab_depth, $line_num, $Input) = @_;
+	my $curr_line = $line_num;
 	my $last_line = ($curr_line == $#{$Input});
 	my $single_line = ${$Input}[$curr_line];
+	die "Line Number $line_num not in file\n" if ($line_num < 0 || $line_num > $#{$Input});
 	if(is_standard_for_statement_line($single_line)) {
 		# **************************************
 		# ******  Standard For Statement *******
@@ -475,9 +485,11 @@ sub convert_for_statement_to_python ( $$$ ) {
 		# ******  Undertimed For Statement *****
 		# **************************************
 		debug("Line Type:- For Type :- Undertimed ");
+	
 		output_python_line($tab_depth, "# $single_line", $last_line);
 	}
-	return $curr_line;
+	return $curr_line if $curr_line >= $line_num;
+	die "For: Current Line out of bounds";
 }
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -510,16 +522,28 @@ sub convert_prepost_incdec ( $ ) {
 	return @valid_python;
 }
 
-
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Purpose:-     Prints perl set expression such as range to python equivalent  %
+# Prototype:-   void  convert_set_to_python($line)                             %
+# Param string  $line      :- Set representation in perl                       %
+# Returns                  :- void                                             %
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sub convert_set_to_python ( $ ) {
 	my ($line) = @_;
 	output_python(0, "range($1, ".($2+1).")") if $line =~ /\s*\((.+)\s*\.\.\s*(.+)\)\s*/;
+	output_python(0, "$1") if $line =~ /^\s*\(\s*(@\w+)\s*\)\s*$/;
 }
 
-
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Purpose:-     Checks entire file for reference of library objects such as re %
+# Prototype:-   void convert_prepost_incdec($line)                             %
+# Param array ref $Input     :- Reference to array of input lines              %
+# Returns                    :- array                                            %
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sub import_libraries ( $ ) {
 	my ($Input) = @_;
 	my $file = join("", @{$Input});
+	debug("Checking if Libraries need to be imported");
 	push @libraries, "sys" if has_system_access($file);
 	push @libraries, "re" if has_regex($file);
 	foreach my $lib (@libraries) {
@@ -626,7 +650,7 @@ sub is_empty_line ( $ ) {
 
 sub is_var_declaration_line ( $ ) {
 	my ($line) = @_;
-	return $line =~ /^\s*\$\w+\s*\=\s*[\"\']?.*[\"\']?\s*$/;	
+	return $line =~ /^\s*[\$\@\%]\w+\s*\=\s*[\"\']?.*[\"\']?\s*$/;	
 } 
 
 sub is_closing_brace_line ( $ ) {
@@ -727,9 +751,25 @@ sub strip_new_line ( $ ) {
 	return $line;
 }
 
+sub strip_at_signs ( $ ) {
+	my ($line) = @_;
+	$line =~ s/\@//g;
+	return $line;
+}
+
+sub strip_logic_operators ( $ ) {
+	my ($line) = @_;
+	$line =~ s/\&\&/ and /g;
+	$line =~ s/\|\|/ or /g;
+	$line =~ s/\!/ not /g if $line !~ /\#\!/;
+	return $line;
+}
+
 sub strip_invalid_python ( $ ) {
 	my ($line) = @_;
 	$line = strip_dollar_signs($line);
+	$line = strip_at_signs($line);
+	$line = strip_logic_operators($line);
 	#print "should be no dol signs here :- $line\n";
 	my @valid_python = convert_prepost_incdec($line);
 	return @valid_python;
@@ -737,7 +777,7 @@ sub strip_invalid_python ( $ ) {
 
 sub strip_semi_colon ( $ ) {
 	my ($line) = @_;
-	$line =~ tr/\;//;
+	$line =~ s/\;//g;
 	return $line;	
 }
 

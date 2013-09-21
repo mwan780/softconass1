@@ -1,21 +1,24 @@
 #!/usr/bin/perl -w
-sub get_for_statement_init ( $ ) {
+sub has_both_braces  ( $ )  {
 	my ($line) = @_;
-	return $1 if $line =~ /\s*for\s*\(\s*(.*?;).*?;.*?\)\s*\{?\s*$/;
-	return "";
+	return $line =~ /^[^\{]*\{[^\}]*\}[^\{\}]$/;	
 }
 
-sub get_for_statement_condition ( $ ) {
+sub has_closing_then_opening_braces  ( $ )  {
 	my ($line) = @_;
-	return $1 if $line =~ /\s*for\s*\(\s*.*?;(.*?);.*?\)\s*\{?\s*$/;
-	return "";
+	return $line =~ /^[^\}]*\}[^\{]*\{[^\{\}]$/;
 }
 
-sub get_for_statement_postexec ( $ ) {
+sub has_pre_inc ( $ ) {
 	my ($line) = @_;
-	@exec_lines = split /,/, $1 if $line =~ /\s*for\s*\(\s*.*?;.*?;(.*?)\)\s*\{?\s*$/;
-	return @exec_lines;
+	return $line =~ /\+\+\w/;
 }
+
+sub has_pre_dec ( $ ) {
+	my ($line) = @_;
+	return $line =~ /\-\-\w/;
+}
+
 
 sub is_comment_line ( $ ) {
 	my ($line) = @_;
