@@ -18,13 +18,8 @@ sub get_for_statement_postexec ( $ ) {
 }
 
 while(<>) {
-	print if /\s?print\s*/;
+	print "var = $1\n" if /\s*foreach\s*(.*?)\s*(\(.*?\))\s*\{?\s*$/;
+	print "set = $2\n" if /\s*foreach\s*(.*?)\s*(\(.*?\))\s*\{?\s*$/;
+	print "range($1, $2)" if /\s*\((.+)\s*\.\.\s*(.+)\)\s*/;
 }
-	$initialisation = get_for_statement_init($_); 
-	$condition = get_for_statement_condition($_);
-	@postexecution = get_for_statement_postexec($_);
-	print "init = $initialisation\n";
-	print "cond = $condition\n";
-	print "exec = @postexecution\n";
-	#print if /\s*foreach\s*(.*?)\s*(\(.*?\))\s*\{?\s*$/;
-
+	

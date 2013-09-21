@@ -118,9 +118,9 @@ sub output_python ( $$ ) {
 	my ($tab_depth, $python) = @_;
 	my @valid_python = strip_invalid_python($python);
 	foreach my $python_line (@valid_python) {
-		print "Output:- " if $debug;
+		#print "Output:- " if $debug;
 		for(my $count = 0; $count < $tab_depth; $count++) {
-			print "    ";
+			print "   ";
 		}
 		print "$python_line";
 	}
@@ -141,7 +141,7 @@ sub output_python_line ( $$$ ) {
 	foreach my $python_line (@valid_python) {
 		print "Output:- " if $debug;
 		for(my $count = 0; $count < $tab_depth; $count++) {
-			print "    ";
+			print "   ";
 		}
 		print "$python_line";
 		print "\n" if !$last_line;
@@ -187,7 +187,7 @@ sub convert_to_python ( $$@ ) {
 				chomp $single_line; 					# Is Force added to every line at the end
 				# Striping on output instead --- should be able to delete this. $single_line = strip_dollar_signs($single_line);
 				debug("Input:- $single_line");
-				$single_line = strip_spaces($single_line);
+				$single_line = strip_outer_spaces($single_line);
 				if(is_closing_brace_line($single_line)) {
 					# #######################################
 					# ###### Sole Closing Brace #############
@@ -238,9 +238,8 @@ sub convert_to_python ( $$@ ) {
 						# }
 						# **************************************
 						debug("Line Type:- If Type:- Multi Line");
-						$single_line =~ /^\s*if\s*(\([^\)]+\))/ or die "$0 : Unable to match multi line if condition";
-						my $condition = $1;
-						$condition =~ tr/[\)\()]//;
+						my $condition = get_if_condition($single_line);
+						$condition = strip_condition_padding($condition);
 						output_python_line($tab_depth, "if ($condition):", $last_line);
 						$curr_line = convert_to_python($tab_depth+1, $curr_line+1, @input);
 					} elsif (has_both_braces($single_line)) {
@@ -249,8 +248,10 @@ sub convert_to_python ( $$@ ) {
 						# if condition { };
 						# **************************************
 						debug("Line Type:- If Type:- Single Line with braces");
-						my $if_statement = strip_outermost_braces($single_line);
-						output_python_line($tab_depth, "$if_statement", $last_line);		
+						my $routine = get_if_routine($single_line);
+						my $condition = get_if_condition($single_line);
+						$condition = strip_condition_padding($condition);
+						output_python_line($tab_depth, "if $condition: $routine", $last_line);		
 					} elsif (is_reverse_order_if_line($single_line)) {
 						# **************************************
 						# **** Reverse Order If Declarion ******
@@ -258,10 +259,15 @@ sub convert_to_python ( $$@ ) {
 						# **************************************
 						debug("Line Type:- If Type:- Reverse Order");
 						$single_line =~ /^(.*)if(.*)/ or die "$0 : Unable to match single line if command at line ".($curr_line+1);
-						my $command_to_exec = $1;
+						push my @command_to_exec, $1;
 						my $condition = $2;
-						$condition =~ tr/[\)\(]//;
-						output_python_line($tab_depth, "if ($condition): $command_to_exec", $last_line);
+
+						$condition =~ strip_condition_padding($condition);
+						output_python($tab_depth, "if ($condition): ");
+						convert_to_python(0, 0, @command_to_exec);
+						# Add extra line for formatting purposes since last line of 
+						# array when converted will not have a new line trailing it.
+						output_python_line($tab_depth, "\n", $last_line); 
 					} elsif (!has_opening_brace($single_line) && !reverse_order_if($single_line)) {
 						# **************************************
 						# *** Not reverse order if statement ***
@@ -269,17 +275,18 @@ sub convert_to_python ( $$@ ) {
 						# *** Opening Brace on next line     ***
 						# **************************************
 						debug("Line Type:- If Type:- Brace on Next line");
+						$single_line = strip_outer_spaces($single_line);
 						output_python_line($tab_depth, "$single_line:", $last_line);
 						$curr_line = convert_to_python($tab_depth+1, $curr_line+1, @input);
-					} elsif ($single_line =~ /elsif\s*(\(?.*)\s*$/) {
+					} elsif ($single_line =~ /elsif\s*(\(?.*)\{\s*$/) {
 						# #######################################
 						# ######### ElsIf Statements ############
 						# #######################################
 						my $condition = $1;
 						debug("Line Type:- Else If ");
-						$condition = strip_outermost_braces($condition);
+						$condition = strip_condition_padding($condition);
 						# Print to tab depth minus one and continue traversal
-						output_python_line(($tab_depth-1), "elif $condition", $last_line);
+						output_python_line(($tab_depth-1), "elif ($condition):", $last_line);
 					} else {
 						# **************************************
 						# ******  Undertimed If Statement ******
@@ -315,6 +322,7 @@ sub convert_to_python ( $$@ ) {
 						#$single_line = strip_outermost_braces($single_line);
 						my $initialisation = get_for_statement_init($single_line); 
 						my $condition = get_for_statement_condition($single_line);
+						$condition = strip_condition_padding($condition);
 						output_python_line($tab_depth, "$initialisation", $last_line);
 						output_python_line($tab_depth, "while ($condition):", $last_line);
 						$curr_line = convert_to_python($tab_depth+1, $curr_line+1, @input);
@@ -332,10 +340,13 @@ sub convert_to_python ( $$@ ) {
 						# ***  Standard Foreach Statement ******
 						# **************************************						
 						debug("Line Type:- For Type :- Foreach ");
-						$single_line = strip_outermost_braces($single_line);
 						my $variable = get_foreach_var($single_line);
 						my $set = get_foreach_set($single_line);
-						output_python_line($tab_depth, "for $variable in $set:", $last_line);
+						debug("Var = $variable");
+						debug("Set = $set");
+						output_python($tab_depth, "for $variable in ");
+						convert_set_to_python($set);
+						output_python($tab_depth, ":\n");
 						$curr_line = convert_to_python($tab_depth+1, $curr_line+1, @input);
 					} else {
 						# **************************************
@@ -350,7 +361,7 @@ sub convert_to_python ( $$@ ) {
 					# #######################################
 					debug("Line Type:- While ");
 					my $condition = get_while_condition($single_line);
-					$condition = strip_outermost_parentheses($condition);
+					$condition = strip_condition_padding($condition);
 					output_python_line($tab_depth, "while ($condition):", $last_line);
 					$curr_line = convert_to_python($tab_depth+1, $curr_line+1, @input);
 				} elsif (is_print_line($single_line)) {
@@ -363,14 +374,14 @@ sub convert_to_python ( $$@ ) {
 					$print_line =~ s/[\"\']\s*\$(\w+)\s*[\"\']/$1 /g;
 
 					output_python_line($tab_depth, "$print_line", $last_line);					
-				} elsif (is_single_word_line(strip_spaces($single_line))) {
+				} elsif (is_single_word_line(strip_outer_spaces($single_line))) {
 					# #######################################
 					# #####  Keyword or Function Call  ######
 					# #######################################
-					$single_line = strip_spaces($single_line);
-					if(defined $keywords[$single_line]) {
+					$single_line = strip_outer_spaces($single_line);
+					if(defined $keywords{$single_line}) {
 					 	debug("Line Type:- Keyword ");
-						output_python_line($tab_depth, "$keywords[$single_line]", $last_line);
+						output_python_line($tab_depth, "$keywords{$single_line}", $last_line);
 					} else {
 						# #######################################
 						# ########### Undertermined #############
@@ -393,7 +404,8 @@ sub convert_to_python ( $$@ ) {
 				debug("");
 			}
 		} else {
-			output_python($tab_depth, "\n");
+			debug("Line Type:- Empty ");
+			output_python_line($tab_depth, "", $last_line);
 		}
 	}
 }
@@ -430,7 +442,10 @@ sub convert_prepost_incdec ( $ ) {
 }
 
 
-
+sub convert_set_to_python ( $ ) {
+	my ($line) = @_;
+	output_python(0, "range($1, ".($2+1).")") if $line =~ /\s*\((.+)\s*\.\.\s*(.+)\)\s*/;
+}
 
 
 
@@ -582,7 +597,7 @@ sub is_while_statement_line ( $ ) {
 
 sub is_single_word_line ( $ ) {
 	my ($line) = @_;
-	return $line =~ /^*\S+$/;
+	return $line =~ /^\S+$/;
 }
 
 # ##########################################
@@ -632,11 +647,21 @@ sub strip_prepost_incdec ( $ ) {
 	return $line;	
 }
 
-sub strip_spaces ( $ ) {
+sub strip_outer_spaces ( $ ) {
 	my ($line) = @_;
-	$line =~ s/^\s+//;
+	$line =~ s/^\s*//;
 	$line =~ s/\s*$//;
 	return $line;	
+}
+
+sub strip_condition_padding ( $ ) {
+	my ($line) = @_;
+	$line = strip_outer_spaces($line);
+	$line = strip_outermost_braces($line);
+	$line = strip_outermost_parentheses($line);
+	$line = strip_outer_spaces($line);
+	return $line;
+
 }
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -692,19 +717,32 @@ sub get_incdec_op ( $ ) {
 	return "-" if (has_post_dec($line) || has_pre_dec($line));
 }
 
+sub get_if_condition ( $ ) {
+	my ($line) = @_;
+	return $1 if $line =~/^\s*if\s*(\([^\)]+\))/;
+	return "";
+}
 
+sub get_if_routine ( $ ) {
+	my ($line) = @_;
+	return $2 if $line =~/^\s*if\s*(\([^\)]+\))\s*\{(.*)\}/;
+	return "";
+}
 
 sub get_foreach_var ( $ ) {
 	my ($line) = @_;
 	return $1 if $line =~ /\s*foreach\s*(.*?)\s*(\(.*?\))\s*\{?\s*$/;
+	return "";
 }
 
 sub get_foreach_set ( $ ) {
 	my ($line) = @_;
 	return $2 if $line =~ /\s*foreach\s*(.*?)\s*(\(.*?\))\s*\{?\s*$/;
+	return "";
 }
 
 sub get_while_condition ( $ ) {
 	my ($line) = @_;
 	return $1 if $line =~ /^\s*while\(?(.*?)\)\s*\{?\s*$/;
+	return "";
 }

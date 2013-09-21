@@ -10,6 +10,7 @@ echo "Compiling file $1"
 echo "Source Code Comparison"
 diff -y $tmp_file $python_file.py
 result=$?
+echo
 if [ $result -ne 0 ]; then
 	echo "Source Code Comparison _________________________________________ Failed"
 else 
@@ -20,6 +21,7 @@ echo "Compilation Test"
 chmod +x $tmp_file
 ./$tmp_file
 result=$?
+echo
 if [ $result -ne 0 ]; then
 	echo "Compilation Test _______________________________________________ Failed"
 else 
@@ -27,11 +29,12 @@ else
 fi 
 
 
-	echo "Output Comparison "
+echo "Output Comparison "
 ./$1 > expected$tmp_file
 ./$tmp_file > generated$tmp_file
 diff -y generated$tmp_file expected$tmp_file
 result=$?
+echo
 if [ $result -ne 0 ]; then
 	echo "Output Comparison _____________________________________________ Failed"
 else 

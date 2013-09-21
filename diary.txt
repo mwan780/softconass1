@@ -39,3 +39,4 @@
 "Stop", "2013-09-20", "18:42:59", "Coding", "Implemented single line var inc/dec and basic foreach functionality"
 "Update", "2013-09-20", "20:40:34", "Testing", "Setup individual file tester"
 "Update", "2013-09-20", "21:16:21", "Coding", "Implemented while handling"
+"Update", "2013-09-21", "10:56:35", "Coding and Testing", "Debugged foreach statement and added range 0..4 == range(0,5) support"
