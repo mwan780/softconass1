@@ -40,3 +40,7 @@
 "Update", "2013-09-20", "20:40:34", "Testing", "Setup individual file tester"
 "Update", "2013-09-20", "21:16:21", "Coding", "Implemented while handling"
 "Update", "2013-09-21", "10:56:35", "Coding and Testing", "Debugged foreach statement and added range 0..4 == range(0,5) support"
+"Update", "2013-09-21", "11:04:05", "Coding", "Implement parse input array by reference to save on memory"
+"Update", "2013-09-21", "11:10:54", "Coding", "Implement parse input array by reference to save on memory"
+"Update", "2013-09-21", "12:08:22", "Coding", "Implemented regex and system library checking"
+"Update", "2013-09-21", "13:14:17", "Coding", "Implemented basic function handling"

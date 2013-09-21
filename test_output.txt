@@ -14,16 +14,51 @@ Running subset_tests.sh
 ******************************
 Testing .... subset1.pl
 test1.pl
+######################################
 Converting perl-to-python for subset1.pl
-Files subset1.py and subset_tests.sh2013-09-13_20:38:53.tmp differ
-Direct Comparison Source Code Check.......................1... Failed
-Compilation Test..........................................0... Passed
-Program Output Comparison Check...........................0... Passed
+######################################
+#!/usr/bin/python2.7 -u						#!/usr/bin/python2.7 -u
+
+print "hello world"						print "hello world"
+Test:- subset1:-
+Test:- Direct Comparison Source Code Check......................0... Passed ............ subset1
+Test:- Compilation Test.........................................0... Passed ............ subset1
+hello world							hello world
+
+Test:- Program Output Comparison Check..........................0... Passed ............ subset1
 
 
+######################################
 Converting perl-to-python for test1.pl
-Direct Comparison Source Code Check.......................2... Failed
-Compilation Test..........................................255... Failed
+######################################
+#!/usr/bin/python2.7 -u						#!/usr/bin/python2.7 -u
+
+if ( "1" ):						      |	if ("1"):
+    print "1"						      |	   print "1"
+
+if ( 1 ): print "Hello\n" 				      |	if ( 1): 
+
+if ( "text" ):						      <
+    print "Equal"					      <
+elif ( "text2" ):					      <
+    print "Also Equal"					      <
+else:							      <
+    print "Not Equal"					      <
+
+							      >	if ("text"):
+							      >	   print "Equal"
+							      >	elif ("text2"):
+							      >	   print "Also Equal"
+							      >	else:
+							      >	   print "Not Equal"
+
+
+
+
+
+Test:- test1:-
+Test:- Direct Comparison Source Code Check......................1... Failed ............ test1
+Test:- Compilation Test.........................................1... Failed ............ test1
 
 
 
@@ -41,46 +76,221 @@ subset2_answer2.pl
 subset2_answer3.pl
 subset2_answer4.pl
 test2.pl
+######################################
 Converting perl-to-python for subset2_answer0.pl
-Files subset2_answer0.py and subset_tests.sh2013-09-13_20:38:53.tmp differ
-Direct Comparison Source Code Check.......................1... Failed
-Compilation Test..........................................0... Passed
-Files generatedoutputsubset_tests.sh2013-09-13_20:38:53.tmp and expectedoutputsubset_tests.sh2013-09-13_20:38:53.tmp differ
-Program Output Comparison Check...........................1... Failed
+######################################
+#!/usr/bin/python2.7 -u						#!/usr/bin/python2.7 -u
+
+answer = 42							answer = 42
+print answer						      |	print answer 
+Test:- subset2_answer0:-
+Test:- Direct Comparison Source Code Check......................1... Failed ............ subset2_answer0
+Test:- Compilation Test.........................................0... Passed ............ subset2_answer0
+42								42
+
+Test:- Program Output Comparison Check..........................0... Passed ............ subset2_answer0
 
 
+######################################
 Converting perl-to-python for subset2_answer1.pl
-Files subset2_answer1.py and subset_tests.sh2013-09-13_20:38:53.tmp differ
-Direct Comparison Source Code Check.......................1... Failed
-Compilation Test..........................................0... Passed
-Files generatedoutputsubset_tests.sh2013-09-13_20:38:53.tmp and expectedoutputsubset_tests.sh2013-09-13_20:38:53.tmp differ
-Program Output Comparison Check...........................1... Failed
+######################################
+#!/usr/bin/python2.7 -u						#!/usr/bin/python2.7 -u
+
+answer = 6 * 7							answer = 6 * 7
+print answer						      |	print answer 
+Test:- subset2_answer1:-
+Test:- Direct Comparison Source Code Check......................1... Failed ............ subset2_answer1
+Test:- Compilation Test.........................................0... Passed ............ subset2_answer1
+42								42
+
+Test:- Program Output Comparison Check..........................0... Passed ............ subset2_answer1
 
 
+######################################
 Converting perl-to-python for subset2_answer2.pl
-Files subset2_answer2.py and subset_tests.sh2013-09-13_20:38:53.tmp differ
-Direct Comparison Source Code Check.......................1... Failed
-Compilation Test..........................................0... Passed
-Files generatedoutputsubset_tests.sh2013-09-13_20:38:53.tmp and expectedoutputsubset_tests.sh2013-09-13_20:38:53.tmp differ
-Program Output Comparison Check...........................1... Failed
+######################################
+#!/usr/bin/python2.7 -u						#!/usr/bin/python2.7 -u
+
+answer = 1 + 7 * 7 -8					      |	answer = 1 + 7 * 7 - 8
+print answer						      |	print answer 
+Test:- subset2_answer2:-
+Test:- Direct Comparison Source Code Check......................1... Failed ............ subset2_answer2
+Test:- Compilation Test.........................................0... Passed ............ subset2_answer2
+42								42
+
+Test:- Program Output Comparison Check..........................0... Passed ............ subset2_answer2
 
 
+######################################
 Converting perl-to-python for subset2_answer3.pl
-Files subset2_answer3.py and subset_tests.sh2013-09-13_20:38:53.tmp differ
-Direct Comparison Source Code Check.......................1... Failed
-Compilation Test..........................................0... Passed
-Files generatedoutputsubset_tests.sh2013-09-13_20:38:53.tmp and expectedoutputsubset_tests.sh2013-09-13_20:38:53.tmp differ
-Program Output Comparison Check...........................1... Failed
+######################################
+#!/usr/bin/python2.7 -u						#!/usr/bin/python2.7 -u
+							      <
+factor0 = 6							factor0 = 6
+factor1 = 7							factor1 = 7
+answer = factor0 * factor1					answer = factor0 * factor1
+print answer						      /	print answer 
+
+Test:- subset2_answer3:-
+Test:- Direct Comparison Source Code Check......................1... Failed ............ subset2_answer3
+Test:- Compilation Test.........................................0... Passed ............ subset2_answer3
+42								42
+
+Test:- Program Output Comparison Check..........................0... Passed ............ subset2_answer3
 
 
+######################################
 Converting perl-to-python for subset2_answer4.pl
-Files subset2_answer4.py and subset_tests.sh2013-09-13_20:38:53.tmp differ
-Direct Comparison Source Code Check.......................1... Failed
-Compilation Test..........................................0... Passed
-Files generatedoutputsubset_tests.sh2013-09-13_20:38:53.tmp and expectedoutputsubset_tests.sh2013-09-13_20:38:53.tmp differ
-Program Output Comparison Check...........................1... Failed
+######################################
+#!/usr/bin/python2.7 -u						#!/usr/bin/python2.7 -u
+
+factor0 = 6							factor0 = 6
+factor1 = 7							factor1 = 7
+print factor0 * factor1					      /	print factor0 * factor1
+
+Test:- subset2_answer4:-
+Test:- Direct Comparison Source Code Check......................1... Failed ............ subset2_answer4
+Test:- Compilation Test.........................................0... Passed ............ subset2_answer4
+42								42
+
+Test:- Program Output Comparison Check..........................0... Passed ............ subset2_answer4
 
 
+######################################
 Converting perl-to-python for test2.pl
-Direct Comparison Source Code Check.......................2... Failed
-Compilation Test..........................................0... Passed
+######################################
+#!/usr/bin/python2.7 -u						#!/usr/bin/python2.7 -u
+							      >	# Test For Statements
+							      >	i = 0
+							      >	#@array = ()
+							      >	for i in range(1, 10):
+							      >	   print i
+							      >	   # array[i] = i + 10
+							      >	print ""
+							      >	print "Array Default Print"
+							      >	print @array
+
+i=0							      |	i = 0
+i+=1							      |	while (i < 9 && i > -1):
+print i							      \	   print i
+							      >
+							      >
+							      >	print ""
+							      >
+							      >	print ""
+							      >	print "Iterative Array Print"
+							      >	for i in :
+							      >	   print i
+							      >
+							      >	print ""
+Test:- test2:-
+Test:- Direct Comparison Source Code Check......................1... Failed ............ test2
+Test:- Compilation Test.........................................1... Failed ............ test2
+
+
+
+
+
+
+******************************
+******************************
+*Running Subset 3 Tests*
+******************************
+******************************
+Testing .... subset3_answer5.pl
+subset3_answer6.pl
+subset3_five.pl
+subset3_iota.pl
+test3.pl
+######################################
+Converting perl-to-python for subset3_answer5.pl
+######################################
+#!/usr/bin/python2.7 -u						#!/usr/bin/python2.7 -u
+
+answer = 41							answer = 41
+if answer > 0:						      |	if (answer > 0):
+    answer = answer + 2					      |	   answer = answer + 2
+if answer == 43:					      |	if (answer == 43):
+    answer = answer - 1					      |	   answer = answer - 1
+print answer						      /	print answer 
+
+Test:- subset3_answer5:-
+Test:- Direct Comparison Source Code Check......................1... Failed ............ subset3_answer5
+Test:- Compilation Test.........................................0... Passed ............ subset3_answer5
+42								42
+
+Test:- Program Output Comparison Check..........................0... Passed ............ subset3_answer5
+
+
+######################################
+Converting perl-to-python for subset3_answer6.pl
+######################################
+#!/usr/bin/python2.7 -u						#!/usr/bin/python2.7 -u
+							      <
+answer = 0							answer = 0
+while answer < 36:					      |	while (answer < 36):
+    answer = answer + 7					      |	   answer = answer + 7
+print answer						      /	print answer 
+
+Test:- subset3_answer6:-
+Test:- Direct Comparison Source Code Check......................1... Failed ............ subset3_answer6
+Test:- Compilation Test.........................................0... Passed ............ subset3_answer6
+42								42
+
+Test:- Program Output Comparison Check..........................0... Passed ............ subset3_answer6
+
+
+######################################
+Converting perl-to-python for subset3_five.pl
+######################################
+#!/usr/bin/python2.7 -u						#!/usr/bin/python2.7 -u
+
+for i in range(0, 5):						for i in range(0, 5):
+    print i						      |	   print i 
+
+Test:- subset3_five:-
+Test:- Direct Comparison Source Code Check......................1... Failed ............ subset3_five
+Test:- Compilation Test.........................................0... Passed ............ subset3_five
+0								0
+1								1
+2								2
+3								3
+4								4
+
+Test:- Program Output Comparison Check..........................0... Passed ............ subset3_five
+
+
+######################################
+Converting perl-to-python for subset3_iota.pl
+######################################
+#!/usr/bin/python2.7 -u						#!/usr/bin/python2.7 -u
+							      <
+x = 1								x = 1
+while x <= 10:						      |	while (x < 5):
+    print x						      |	   print x 
+    x = x + 1						      |	   x = x + 1
+
+Test:- subset3_iota:-
+Test:- Direct Comparison Source Code Check......................1... Failed ............ subset3_iota
+Test:- Compilation Test.........................................0... Passed ............ subset3_iota
+1								1
+2								2
+3								3
+4								4
+							      >	5
+							      >	6
+							      >	7
+							      >	8
+							      >	9
+							      >	10
+
+Test:- Program Output Comparison Check..........................1... Failed ............ subset3_iota
+
+
+######################################
+Converting perl-to-python for test3.pl
+######################################
+
+Test:- test3:-
+Test:- Direct Comparison Source Code Check......................2... Failed ............ test3
+Test:- Compilation Test.........................................0... Passed ............ test3

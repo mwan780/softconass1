@@ -17,9 +17,25 @@ sub get_for_statement_postexec ( $ ) {
 	return @exec_lines;
 }
 
+sub is_comment_line ( $ ) {
+	my ($line) = @_;
+	return $line =~ /^\s*\#.*$/;
+}
+
+sub get_function_args ( $ ) {
+	my ($line) = @_;
+	return "" if !($line =~ /^\s*sub\s+(\w+)\s*(\(.*?\))\s*\{?\s*$/);
+	my $args = $2;
+	my $arguments = "(";
+	while($args =~ /[\$\@\%]/g) {
+		$arguments .= "arg".$num++;
+	}
+	$arguments .= ")";
+	return $arguments;
+}
+
 while(<>) {
-	print "var = $1\n" if /\s*foreach\s*(.*?)\s*(\(.*?\))\s*\{?\s*$/;
-	print "set = $2\n" if /\s*foreach\s*(.*?)\s*(\(.*?\))\s*\{?\s*$/;
-	print "range($1, $2)" if /\s*\((.+)\s*\.\.\s*(.+)\)\s*/;
+
+	print get_function_args($_);
 }
 	

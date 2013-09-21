@@ -1,52 +1,577 @@
-*Running Subset 1 Tests*
-Testing .... subset1.pl
-Test:- subset1:-
-Test:- Direct Comparison Source Code Check......................0... Passed ............ subset1
-Test:- Compilation Test.........................................0... Passed ............ subset1
-Test:- Program Output Comparison Check..........................0... Passed ............ subset1
-Test:- test1:-
-Test:- Direct Comparison Source Code Check......................1... Failed ............ test1
-Test:- Compilation Test.........................................0... Passed ............ test1
-Test:- Program Output Comparison Check..........................0... Passed ............ test1
-*Running Subset 2 Tests*
-Testing .... subset2_answer0.pl
-Test:- subset2_answer0:-
-Test:- Direct Comparison Source Code Check......................1... Failed ............ subset2_answer0
-Test:- Compilation Test.........................................0... Passed ............ subset2_answer0
-Test:- Program Output Comparison Check..........................0... Passed ............ subset2_answer0
-Test:- subset2_answer1:-
-Test:- Direct Comparison Source Code Check......................1... Failed ............ subset2_answer1
-Test:- Compilation Test.........................................0... Passed ............ subset2_answer1
-Test:- Program Output Comparison Check..........................0... Passed ............ subset2_answer1
-Test:- subset2_answer2:-
-Test:- Direct Comparison Source Code Check......................1... Failed ............ subset2_answer2
-Test:- Compilation Test.........................................0... Passed ............ subset2_answer2
-Test:- Program Output Comparison Check..........................0... Passed ............ subset2_answer2
-Test:- subset2_answer3:-
-Test:- Direct Comparison Source Code Check......................1... Failed ............ subset2_answer3
-Test:- Compilation Test.........................................0... Passed ............ subset2_answer3
-Test:- Program Output Comparison Check..........................0... Passed ............ subset2_answer3
-Test:- subset2_answer4:-
-Test:- Direct Comparison Source Code Check......................1... Failed ............ subset2_answer4
-Test:- Compilation Test.........................................0... Passed ............ subset2_answer4
-Test:- Program Output Comparison Check..........................0... Passed ............ subset2_answer4
-Test:- test2:-
-Test:- Direct Comparison Source Code Check......................2... Failed ............ test2
-Test:- Compilation Test.........................................1... Failed ............ test2
-*Running Subset 3 Tests*
-Testing .... subset3_answer5.pl
-Test:- subset3_answer5:-
-Test:- Direct Comparison Source Code Check......................1... Failed ............ subset3_answer5
-Test:- Compilation Test.........................................1... Failed ............ subset3_answer5
-Test:- subset3_answer6:-
-Test:- Direct Comparison Source Code Check......................1... Failed ............ subset3_answer6
-Test:- Compilation Test.........................................1... Failed ............ subset3_answer6
-Test:- subset3_five:-
-Test:- Direct Comparison Source Code Check......................1... Failed ............ subset3_five
-Test:- Compilation Test.........................................1... Failed ............ subset3_five
-Test:- subset3_iota:-
-Test:- Direct Comparison Source Code Check......................1... Failed ............ subset3_iota
-Test:- Compilation Test.........................................1... Failed ............ subset3_iota
-Test:- test3:-
-Test:- Direct Comparison Source Code Check......................2... Failed ............ test3
-Test:- Compilation Test.........................................0... Passed ............ test3
+#!/usr/bin/perl -w 
+
+# *********************************
+# *********************************
+# Author:- Steven Falconieri    
+# *********************************
+# *********************************
+import sys
+import re
+
+# Style Notes:-
+
+# If the first character of a variable is capitalised, this implies that the variable is a 
+# reference to another variable does not contain any contents but a pointer to the actual data
+
+#use constant NOT_CONVERTED => -1;
+
+#use strict;
+
+# #############################################################################################
+
+# #############################################################################################
+# #############################################################################################
+# ############################       Function Prototypes      #################################
+# #############################################################################################
+# #############################################################################################
+# #############################################################################################
+
+def convert_prepost_incdec(arg0):
+   def    convert_to_python   (arg0arg1arg2)   :
+      def       debug      (arg0)      :
+         def          get_for_statement_condition         (arg0)         :
+            def             get_for_statement_init            (arg0)            :
+               def                get_for_statement_postexec               (arg0)               :
+                  def                   get_incdec_op                  (arg0)                  :
+                     def                      get_post_var                     (arg0)                     :
+                        def                         get_pre_var                        (arg0)                        :
+                           def                            get_print                           (arg0)                           :
+                              def                               has_both_braces                              (arg0)                              :
+                                 def                                  has_closing_then_opening_braces                                 (arg0)                                 :
+                                    def                                     has_opening_brace                                    (arg0)                                    :
+                                       def                                        has_post_dec                                       (arg0)                                       :
+                                          def                                           has_post_inc                                          (arg0)                                          :
+                                             def                                              has_pre_dec                                             (arg0)                                             :
+                                                def                                                 has_pre_inc                                                (arg0)                                                :
+                                                   def                                                    has_prepost_incdec                                                   (arg0)                                                   :
+                                                      def                                                       has_strictly_closing_brace                                                      (arg0)                                                      :
+                                                         def                                                          has_strictly_opening_brace                                                         (arg0)                                                         :
+                                                            def                                                             is_closing_brace_line                                                            (arg0)                                                            :
+                                                               def                                                                is_comment_line                                                               (arg0)                                                               :
+                                                                  def                                                                   is_else_line                                                                  (arg0)                                                                  :
+                                                                     def                                                                      is_empty_line                                                                     (arg0)                                                                     :
+                                                                        def                                                                         is_foreach_statement_line                                                                        (arg0)                                                                        :
+                                                                           def                                                                            is_for_statement                                                                           (arg0)                                                                           :
+                                                                              def                                                                               is_opening_brace_line                                                                              (arg0)                                                                              :
+                                                                                 def                                                                                  is_print_line                                                                                 (arg0)                                                                                 :
+                                                                                    def                                                                                     is_reverse_order_if_line                                                                                    (arg0)                                                                                    :
+                                                                                       def                                                                                        is_standard_for_statement_line                                                                                       (arg0)                                                                                       :
+                                                                                          def                                                                                           is_var_declaration_line                                                                                          (arg0)                                                                                          :
+                                                                                             def                                                                                              output_python                                                                                             (arg0arg1)                                                                                             :
+                                                                                                def                                                                                                 output_python_line                                                                                                (arg0arg1arg2)                                                                                                :
+                                                                                                   def                                                                                                    strip_dollar_signs                                                                                                   (arg0)                                                                                                   :
+                                                                                                      def                                                                                                       strip_invalid_python                                                                                                      (arg0)                                                                                                      :
+                                                                                                         def                                                                                                          strip_new_line                                                                                                         (arg0)                                                                                                         :
+                                                                                                            def                                                                                                             strip_outermost_braces                                                                                                            (arg0)                                                                                                            :
+                                                                                                               def                                                                                                                strip_outermost_parentheses                                                                                                               (arg0)                                                                                                               :
+                                                                                                                  
+                                                                                                                  
+                                                                                                                  
+                                                                                                                  
+                                                                                                                  # #############################################################################################
+
+                                                                                                                  # #############################################################################################
+                                                                                                                  # #############################################################################################
+                                                                                                                  # ##############################            MAIN           ####################################
+                                                                                                                  # #############################################################################################
+                                                                                                                  # #############################################################################################
+                                                                                                                  # #############################################################################################
+                                                                                                                  
+                                                                                                                  
+                                                                                                                  # Debugging Flag
+
+                                                                                                                  # Must be first program argument
+                                                                                                                  if ($#ARGV > 0 && ARGV[0] =~ /\-d/):
+                                                                                                                     debug = 1
+                                                                                                                     shift @ARGV;:
+                                                                                                                     
+                                                                                                                     # %keywords = (
+                                                                                                                     # 'last' => 'break',
+                                                                                                                     # 'continue' => 'continue',
+                                                                                                                     # 'print' => 'print',
+                                                                                                                     # 'split' => '',
+                                                                                                                     # 'join' => '',
+                                                                                                                     # '=~ s/' => 're.sub',
+                                                                                                                     # '=~ /' => 're.match',
+                                                                                                                     # 'sub' => 'def',
+                                                                                                                     # )
+                                                                                                                     
+                                                                                                                     # Process Files
+
+                                                                                                                     # Check if any files have been parsed as arguments
+                                                                                                                     # If so execute the conversion to each file individually
+                                                                                                                     # If not continue to Standard Input processing below
+                                                                                                                     for my file in                                                                                                                      :
+                                                                                                                        # open(PERL, file) or die "0: Could not open file : $!\n"
+                                                                                                                        # debug("Reading from File")
+                                                                                                                        # @perl_input = <PERL>
+                                                                                                                        Perl_ref = \@perl_input
+                                                                                                                        # convert_to_python(0, 0, Perl_ref)
+                                                                                                                     # Process Standard Input if no files were parsed
+
+                                                                                                                     if (!($#ARGV >= 0):
+                                                                                                                        # debug("Reading from standard input")
+                                                                                                                        # @std_input = <STDIN>
+                                                                                                                        Stdin_ref = \@std_input
+                                                                                                                        # convert_to_python(0, 0, Stdin_ref)
+                                                                                                                     
+                                                                                                                     
+                                                                                                                     # #############################################################################################
+
+                                                                                                                     # #############################################################################################
+                                                                                                                     # #############################################################################################
+                                                                                                                     # ################################       Output Functions        ##############################
+                                                                                                                     # #############################################################################################
+                                                                                                                     # #############################################################################################
+                                                                                                                     # #############################################################################################
+                                                                                                                     
+                                                                                                                     # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+                                                                                                                     # Purpose:-    Outputs to python code to standard output                       %
+                                                                                                                     # Prototype:-  void output_python(tab_depth, python)                         %
+                                                                                                                     # Param int    tab_depth :- Level of indentation to prepend to output         %
+                                                                                                                     # Param string python    :- Content to output                                 %
+                                                                                                                     # Returns                 :- void                                              %
+                                                                                                                     # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                                                                                                                     def                                                                                                                      output_python                                                                                                                     (arg0arg1)                                                                                                                     :
+                                                                                                                        # my (tab_depth, python) = @_
+                                                                                                                        # my @valid_python = strip_invalid_python(python)
+                                                                                                                        for my python_line in                                                                                                                         :
+                                                                                                                           		#print "Output:- " if debug;
+
+                                                                                                                           my count = 0
+                                                                                                                           while (count < tab_depth):
+                                                                                                                              print "   "
+                                                                                                                              count += 1                                                                                                                           
+
+                                                                                                                           print python_line 
+                                                                                                                     
+                                                                                                                     # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+                                                                                                                     # Purpose:-     Outputs python code to standard output followed                %
+                                                                                                                     #               by newline character                                           %
+                                                                                                                     # Prototype:-   void output_python_line(tab_depth, python, last_line)       %
+                                                                                                                     # Param int     tab_depth :- Level of indentation to prepend to output        %
+                                                                                                                     # Param string  python    :- Content to output                                %
+                                                                                                                     # Param boolean last_line :- Determines if new line char should be appended   %
+                                                                                                                     # Returns                  :- void                                             %
+                                                                                                                     # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                                                                                                                     def                                                                                                                      output_python_line                                                                                                                     (arg0arg1arg2)                                                                                                                     :
+                                                                                                                        # my (tab_depth, python, last_line) = @_
+                                                                                                                        # my @valid_python = strip_invalid_python(python)
+                                                                                                                        for my python_line in                                                                                                                         :
+                                                                                                                           if ( debug;): print "Output:- "                                                                                                                           
+
+                                                                                                                           my count = 0
+                                                                                                                           while (count < tab_depth):
+                                                                                                                              print "   "
+                                                                                                                              count += 1                                                                                                                           
+
+                                                                                                                           print python_line 
+                                                                                                                           if ( !last_line;): print ""                                                                                                                           
+
+                                                                                                                     
+                                                                                                                     # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+                                                                                                                     # Purpose:-     Outputs message with new line character to standard output if  %
+                                                                                                                     #               debugging flag (-d) has been parsed as programs first argument %
+                                                                                                                     # Prototype:-   void debug(message)                                           %
+                                                                                                                     # Param string  message   :- Content to output                                %
+                                                                                                                     # Returns                  :- void                                             %
+                                                                                                                     # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                                                                                                                     def                                                                                                                      debug                                                                                                                     (arg0)                                                                                                                     :
+                                                                                                                        # my (message) = @_
+                                                                                                                        if ( debug;): print "Debug:- message"                                                                                                                        
+
+                                                                                                                     
+                                                                                                                     # #############################################################################################
+
+                                                                                                                     # #############################################################################################
+                                                                                                                     # #############################################################################################
+                                                                                                                     # #######################        Recursive Conversion Functions          #######################
+                                                                                                                     # #############################################################################################
+                                                                                                                     # #############################################################################################
+                                                                                                                     # #############################################################################################
+                                                                                                                     # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                                                                                                                     # Purpose:-       Recursively converts perl code to python by evaulating a line%
+                                                                                                                     #                 at a time and various syntax cases.                          %
+                                                                                                                     # Prototype:-     int  debug(tab_depth, line_num, Input)                    %
+                                                                                                                     # Param int       tab_depth :- Indentation level to prepend to python output  %
+                                                                                                                     # Param int       line_num  :- Current line number of input array             %
+                                                                                                                     # Param array ref Input     :- Reference to array of input lines              %
+                                                                                                                     # Returns                    :- int Number of last line converted              %
+                                                                                                                     # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                                                                                                                     # Return:- last line number read from
+                                                                                                                     def                                                                                                                      convert_to_python                                                                                                                     (arg0arg1arg2)                                                                                                                     :
+                                                                                                                        # my (tab_depth, line_num, Input) = @_
+                                                                                                                        # debug("Tab Depth = tab_depth and input line number = ".line_num."/".($#{Input}+1))
+                                                                                                                        # my curr_line = line_num
+                                                                                                                        curr_line = line_num
+                                                                                                                        while (curr_line <= $#:Input):
+                                                                                                                           		# Break up multiple lines of code into single lines
+
+                                                                                                                           # my last_line = (curr_line == $#{Input})
+                                                                                                                           # my line = "${Input}[curr_line]"
+                                                                                                                           # debug("Current line number = curr_line")
+                                                                                                                           if (!is_empty_line(line):
+                                                                                                                              # debug("Ignore
+                                                                                                                              if ( is_standard_for_statement_line(line);): # debug("Ignore# 			debug("Ignore ; since for statement line")                                                                                                                               
+
+                                                                                                                              # my @multiple_lines = split (/
+                                                                                                                              if ( !is_standard_for_statement_line(line);): # my @multiple_lines = split (/# \s*/, line)                                                                                                                              
+
+                                                                                                                              if ( is_standard_for_statement_line(line);): # push @multiple_lines, line                                                                                                                              
+
+                                                                                                                              if ( @multiple_lines > 1;): # debug("Multiple ($#multiple_lines+1) Lines Detected at line curr_line")                                                                                                                              
+
+                                                                                                                              for my single_line in                                                                                                                               :
+                                                                                                                                 # chomp single_line
+                                                                                                                                 				chomp single_line; 					# Is Force added to every line at the end
+
+                                                                                                                                 				# Striping on output instead --- should be able to delete this. single_line = strip_dollar_signs(single_line);
+                                                                                                                                 # debug("Input:- single_line")
+                                                                                                                                 single_line = strip_outer_spaces(single_line)
+                                                                                                                                 if (is_closing_brace_line(single_line):
+                                                                                                                                    					# #######################################
+
+                                                                                                                                    					# ###### Sole Closing Brace #############
+                                                                                                                                    					# #######################################
+                                                                                                                                    # debug("Line Type:- Closing Brace ")
+                                                                                                                                    # return (curr_line)
+                                                                                                                                 elif (is_opening_brace_line(single_line)):
+                                                                                                                                    					# #######################################
+
+                                                                                                                                    					# ###### Sole Opening Brace #############
+                                                                                                                                    					# #######################################
+                                                                                                                                    					# Do Nothing as it has been implemented in if statement below
+                                                                                                                                    # debug("Line Type:- Opening Brace ")
+                                                                                                                                 elif (is_comment_line(single_line)):
+                                                                                                                                    					# #######################################
+
+                                                                                                                                    					# ############## Comments ###############
+                                                                                                                                    					# #######################################
+                                                                                                                                    					# Print Comments Directly Out and removing leading spaces
+                                                                                                                                    # debug("Line Type:- Comments ")
+                                                                                                                                    single_line =~ /(#.*)/
+                                                                                                                                    single_line = 1
+                                                                                                                                    # my first_line = (curr_line == 0)
+                                                                                                                                    					# Convert Shabang 
+
+                                                                                                                                    single_line =~ s/perl -w/python2.7 \-u/ if first_line
+                                                                                                                                    					# Print all consecutive comment lines
+
+                                                                                                                                    # output_python_line(tab_depth, ${Input}[curr_line], last_line)
+                                                                                                                                    while (is_comment_line$:Input[curr_line+1]):
+                                                                                                                                       						# Note ++ increments the current line counter for accurate return val
+
+                                                                                                                                       # debug("Current line number = ".(1+curr_line))
+                                                                                                                                       curr_line += 1
+                                                                                                                                       single_line = ${Input}[curr_line]
+                                                                                                                                       # chomp single_line
+                                                                                                                                       # output_python_line(tab_depth, single_line, last_line)
+                                                                                                                                    if ( first_line;): # import_libraries(Input)                                                                                                                                    
+
+                                                                                                                                 elif (is_var_declaration_line(single_line)):
+                                                                                                                                    					# #######################################
+
+                                                                                                                                    					# #######  Variable Declaration  #########
+                                                                                                                                    					# #######################################
+                                                                                                                                    # debug("Line Type:- Variable Declaration ")
+                                                                                                                                    # output_python_line(tab_depth, "single_line", last_line)
+                                                                                                                                    while (single_line =~ /\$\w+/g):
+                                                                                                                                       						#vars{line}{1} = 1;	# This may be useful later otherwise delete it
+
+                                                                                                                                       						#vars{line}{1} = 1;	# This may be useful later otherwise delete it
+
+                                                                                                                                 elif (is_function_declaration(single_line)):
+                                                                                                                                    					# #######################################
+
+                                                                                                                                    					# #######  Function Declaration  ########
+                                                                                                                                    					# #######################################
+                                                                                                                                    # output_python(tab_depth, "keywords{'sub'} ")
+                                                                                                                                    # output_python(tab_depth, get_function_name(single_line))
+                                                                                                                                    # output_python(tab_depth, get_function_args(single_line))
+                                                                                                                                    # output_python(tab_depth, ":\n")
+                                                                                                                                    curr_line = convert_to_python(tab_depth+1, curr_line+1, Input)
+                                                                                                                                 elif (is_prepost_incdec_line(single_line)):
+                                                                                                                                    					# #######################################
+
+                                                                                                                                    					# #######  Pre/Post Inc/Dec Line  #######
+                                                                                                                                    					# #######################################
+                                                                                                                                    # output_python_line(tab_depth, "single_line", last_line)
+                                                                                                                                 elif (single_line =~ /\s*if\s*\(?/):
+                                                                                                                                    					# #######################################
+
+                                                                                                                                    					# ########### If Statements #############
+                                                                                                                                    					# #######################################
+                                                                                                                                    # debug("Line Type:- If")
+                                                                                                                                    curr_line = convert_if_statement_to_python(tab_depth, curr_line, Input)
+                                                                                                                                 elif (is_else_line(single_line)):
+                                                                                                                                    					# #######################################
+
+                                                                                                                                    					# ######### Else Statements #############
+                                                                                                                                    					# #######################################
+                                                                                                                                    # debug("Line Type:- Else ")
+                                                                                                                                    # debug("Line Type:- Else Type :- Else ")
+                                                                                                                                    					# Print to tab depth minus one and continue traversal
+
+                                                                                                                                    # output_python_line((tab_depth-1), "else:", last_line)
+                                                                                                                                 elif (is_for_statement(single_line)):
+                                                                                                                                    					# #######################################
+
+                                                                                                                                    					# ########## For Statements #############
+                                                                                                                                    					# #######################################
+                                                                                                                                    # debug("Line Type:- For ")
+                                                                                                                                    curr_line = convert_for_statement_to_python(tab_depth, curr_line, Input)
+                                                                                                                                 elif (is_while_statement_line(single_line)):
+                                                                                                                                    					# #######################################
+
+                                                                                                                                    					# ###########  While Loops  #############
+                                                                                                                                    					# #######################################
+                                                                                                                                    # debug("Line Type:- While ")
+                                                                                                                                    # my condition = get_while_condition(single_line)
+                                                                                                                                    condition = strip_condition_padding(condition)
+                                                                                                                                    # output_python_line(tab_depth, "while (condition):", last_line)
+                                                                                                                                    curr_line = convert_to_python(tab_depth+1, curr_line+1, Input)
+                                                                                                                                 elif (is_print_line(single_line)):
+                                                                                                                                    					# #######################################
+
+                                                                                                                                    					# ###############  Prints  ##############
+                                                                                                                                    					# #######################################
+                                                                                                                                    # debug("Line Type:- Print ")
+                                                                                                                                    # my print_line = strip_outermost_parentheses(get_print(single_line))
+                                                                                                                                    print_line = strip_new_line(print_line)
+                                                                                                                                    print_line =~ s/[\"\']\s*\$(\w+)\s*[\"\']/1 /g
+                                                                                                                                    
+                                                                                                                                    # output_python_line(tab_depth, "print_line", last_line)
+                                                                                                                                 elif (is_single_word_line(strip_outer_spaces(single_line))):
+                                                                                                                                    					# #######################################
+
+                                                                                                                                    					# #####  Keyword or Function Call  ######
+                                                                                                                                    					# #######################################
+                                                                                                                                    single_line = strip_outer_spaces(single_line)
+                                                                                                                                    if ((defined keywords{single_line}) {): #                                                                                                                                     
+
+                                                                                                                                    # debug("Line Type:- Keyword ")
+                                                                                                                                    # output_python_line(tab_depth, "keywords{single_line}", last_line)
+                                                                                                                                 else:
+                                                                                                                                    						# #######################################
+
+                                                                                                                                    						# ########### Undertermined #############
+                                                                                                                                    						# #######################################
+                                                                                                                                    # debug("Line Type:- Undertermined ")
+                                                                                                                                    # output_python_line(tab_depth, "# single_line", last_line)
+                                                                                                                                 
+                                                                                                                              elif (has_print_call(single_line)):
+                                                                                                                                 # debug("Line Type:- Print Maybe")
+                                                                                                                                 # output_python_line(tab_depth, "single_line", last_line)
+                                                                                                                              else:
+                                                                                                                                 					# #######################################
+
+                                                                                                                                 					# ########### Undertermined #############
+                                                                                                                                 					# #######################################
+                                                                                                                                 # debug("Line Type:- Undertermined ")
+                                                                                                                                 # output_python_line(tab_depth, "# single_line", last_line)
+                                                                                                                              # debug("")
+                                                                                                                              # debug("")
+                                                                                                                        else:
+                                                                                                                           # debug("Line Type:- Empty ")
+                                                                                                                           # output_python_line(tab_depth, "", last_line)
+                                                                                                                           curr_line += 1                                                                                                                        
+
+                                                                                                                  
+                                                                                                                  # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+                                                                                                                  # Purpose:-       Recursively converts perl if statement code to python by     %
+                                                                                                                  #                 evaulating a line at a time and various syntax cases.        %                    %
+                                                                                                                  # Prototype:-     int  debug(tab_depth, line_num, Input)                    %
+                                                                                                                  # Param int       tab_depth :- Indentation level to prepend to python output  %
+                                                                                                                  # Param int       line_num  :- Current line number of input array             %
+                                                                                                                  # Param array ref Input     :- Reference to array of input lines              %
+                                                                                                                  # Returns                    :- int Number of last line converted              %
+                                                                                                                  # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                                                                                                                  def                                                                                                                   convert_if_statement_to_python                                                                                                                  (arg0arg1arg2)                                                                                                                  :
+                                                                                                                     # my (tab_depth, curr_line, Input) = @_
+                                                                                                                     # my last_line = (curr_line == $#{Input})
+                                                                                                                     # my single_line = ${Input}[curr_line]
+                                                                                                                     # chomp single_line
+                                                                                                                     if (has_strictly_opening_brace(single_line):
+                                                                                                                        		# **************************************
+
+                                                                                                                        		# ******* Multi Line If Statement ******
+                                                                                                                        		# if (condition) {
+                                                                                                                        		# }
+                                                                                                                        		# **************************************
+                                                                                                                        # debug("Line Type:- If Type:- Multi Line")
+                                                                                                                        my condition = get_if_condition(single_line);:
+                                                                                                                           condition = strip_condition_padding(condition)
+                                                                                                                           output_python_line(tab_depth, "if (condition):", last_line);:
+                                                                                                                              curr_line = convert_to_python(tab_depth+1, curr_line+1, Input)
+                                                                                                                           elif (has_both_braces(single_line)):
+                                                                                                                              		# **************************************
+
+                                                                                                                              		# ************ Single Line If **********
+                                                                                                                              		# if condition { };
+                                                                                                                              		# **************************************
+                                                                                                                              # debug("Line Type:- If Type:- Single Line with braces")
+                                                                                                                              my routine = get_if_routine(single_line);:
+                                                                                                                                 my condition = get_if_condition(single_line);:
+                                                                                                                                    condition = strip_condition_padding(condition)
+                                                                                                                                    output_python_line(tab_depth, "if condition: routine", last_line);:
+                                                                                                                                    elif (is_reverse_order_if_line(single_line)):
+                                                                                                                                       		# **************************************
+
+                                                                                                                                       		# **** Reverse Order If Declarion ******
+                                                                                                                                       		# command if condition;
+                                                                                                                                       		# **************************************
+                                                                                                                                       # debug("Line Type:- If Type:- Reverse Order")
+                                                                                                                                       single_line =~ /^(.*)if(.*)/ or die "0 : Unable to match single line if command at line ".(curr_line+1)
+                                                                                                                                       # push (my @command_to_exec, 1)
+                                                                                                                                       # my condition = 2
+                                                                                                                                       condition =~ strip_condition_padding(condition)
+                                                                                                                                       output_python(tab_depth, "if (condition): ");:
+                                                                                                                                          # my Command_ref = \@command_to_exec
+                                                                                                                                          # convert_to_python(0, 0, Command_ref)
+                                                                                                                                          		# Add extra line for formatting purposes since last line of 
+
+                                                                                                                                          		# array when converted will not have a new line trailing it.
+                                                                                                                                          # output_python_line(tab_depth, "\n", last_line)
+                                                                                                                                       elif (!has_opening_brace(single_line) && !is_reverse_order_if_line(single_line)):
+                                                                                                                                          		# **************************************
+
+                                                                                                                                          		# *** Not reverse order if statement ***
+                                                                                                                                          		# *** no opening bracket             ***
+                                                                                                                                          		# *** Opening Brace on next line     ***
+                                                                                                                                          		# **************************************
+                                                                                                                                          # debug("Line Type:- If Type:- Brace on Next line")
+                                                                                                                                          single_line = strip_outer_spaces(single_line)
+                                                                                                                                          # output_python_line(tab_depth, "single_line:", last_line)
+                                                                                                                                          curr_line = convert_to_python(tab_depth+1, curr_line+1, Input)
+                                                                                                                                       elif (single_line =~ /elsif\s*(\(?.*)\:\s*$/):
+                                                                                                                                          		# #######################################
+
+                                                                                                                                          		# ######### ElsIf Statements ############
+                                                                                                                                          		# #######################################
+                                                                                                                                          # my condition = 1
+                                                                                                                                          # debug("Line Type:- Else If ")
+                                                                                                                                          condition = strip_condition_padding(condition)
+                                                                                                                                          		# Print to tab depth minus one and continue traversal
+
+                                                                                                                                          output_python_line((tab_depth-1), "elif (condition):", last_line);:
+                                                                                                                                          else:
+                                                                                                                                             		# **************************************
+
+                                                                                                                                             		# ******  Undertimed If Statement ******
+                                                                                                                                             		# **************************************
+                                                                                                                                             # debug("Line Type:- If Type:- Undertermined !")
+                                                                                                                                             # output_python_line(tab_depth, "# single_line", last_line)
+                                                                                                                                             curr_line = convert_to_python(tab_depth+1, curr_line+1, Input)
+                                                                                                                                          # return curr_line
+                                                                                                                                       
+                                                                                                                                       # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+                                                                                                                                       # Purpose:-       Recursively converts perl for statement code to python by    %
+                                                                                                                                       #                 evaulating a line at a time and various syntax cases.        %                    %
+                                                                                                                                       # Prototype:-     int  debug(tab_depth, line_num, Input)                    %
+                                                                                                                                       # Param int       tab_depth :- Indentation level to prepend to python output  %
+                                                                                                                                       # Param int       line_num  :- Current line number of input array             %
+                                                                                                                                       # Param array ref Input     :- Reference to array of input lines              %
+                                                                                                                                       # Returns                    :- int Number of last line converted              %
+                                                                                                                                       # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                                                                                                                                       def                                                                                                                                        convert_for_statement_to_python                                                                                                                                       (arg0arg1arg2)                                                                                                                                       :
+                                                                                                                                          # my (tab_depth, curr_line, Input) = @_
+                                                                                                                                          # my last_line = (curr_line == $#{Input})
+                                                                                                                                          # my single_line = ${Input}[curr_line]
+                                                                                                                                          if (is_standard_for_statement_line(single_line):
+                                                                                                                                             		# **************************************
+
+                                                                                                                                             		# ******  Standard For Statement *******
+                                                                                                                                             		# for(initialisation; condition; postexecution)
+                                                                                                                                             		# **************************************
+                                                                                                                                             		# Since python does not support this standard 
+                                                                                                                                             		# for statement syntax, conversion to the 
+                                                                                                                                             		# equivalent while statement has been implemented
+                                                                                                                                             		# due to its better accuracy in translating the 
+                                                                                                                                             		# purpose of this code in more cases than using 
+                                                                                                                                             		# pythons "for i in set" syntax.
+                                                                                                                                             # debug("Line Type:- For Type :- Standard ")
+                                                                                                                                             		#single_line = strip_outermost_braces(single_line);
+
+                                                                                                                                             # 		my initialisation = get_for_statement_init(single_line); 
+
+                                                                                                                                             # 		my condition = get_for_statement_condition(single_line);
+
+                                                                                                                                             condition = strip_condition_padding(condition)
+                                                                                                                                             # output_python_line(tab_depth, "initialisation", last_line)
+                                                                                                                                             # output_python_line(tab_depth, "while (condition):", last_line)
+                                                                                                                                             curr_line = convert_to_python(tab_depth+1, curr_line+1, Input)
+                                                                                                                                             		# Call convert_to_python on 
+
+                                                                                                                                             # 		my @postexecution = get_for_statement_postexec(single_line);
+
+                                                                                                                                             # my Post_exec_ref = \@postexecution
+                                                                                                                                             # convert_to_python(tab_depth+1, 0, Post_exec_ref)
+                                                                                                                                             		# Add extra line for formatting purposes since last line of 
+
+                                                                                                                                             		# array when converted will not have a new line trailing it.
+                                                                                                                                             # output_python_line(tab_depth, "\n", last_line)
+                                                                                                                                          elif (is_foreach_statement_line(single_line)):
+                                                                                                                                             		# **************************************
+
+                                                                                                                                             		# ***  Standard Foreach Statement ******
+                                                                                                                                             		# **************************************						
+                                                                                                                                             # debug("Line Type:- For Type :- Foreach ")
+                                                                                                                                             # 		my variable = get_foreach_var(single_line);
+
+                                                                                                                                             # 		my set = get_foreach_set(single_line);
+
+                                                                                                                                             # debug("Var = variable")
+                                                                                                                                             # debug("Set = set")
+                                                                                                                                             # 		output_python(tab_depth, "for variable in ");
+
+                                                                                                                                             # convert_set_to_python(set)
+                                                                                                                                             # output_python(tab_depth, ":\n")
+                                                                                                                                             curr_line = convert_to_python(tab_depth+1, curr_line+1, Input)
+                                                                                                                                          else:
+                                                                                                                                             		# **************************************
+
+                                                                                                                                             		# ******  Undertimed For Statement *****
+                                                                                                                                             		# **************************************
+                                                                                                                                             # debug("Line Type:- For Type :- Undertimed ")
+                                                                                                                                             # output_python_line(tab_depth, "# single_line", last_line)
+                                                                                                                                          # return curr_line
+                                                                                                                                       
+                                                                                                                                       # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+                                                                                                                                       # Purpose:-     Converts single pre/post increment/decrement statements in     %
+                                                                                                                                       #               argument string to array of python equivalent lines of code to %
+                                                                                                                                       #               achieve similar program outcome                                %
+                                                                                                                                       # Prototype:-   array convert_prepost_incdec(line)                            %
+                                                                                                                                       # Param string  line      :- Content to convert to python equivalent          %
+                                                                                                                                       # Returns                  :- array                                            %
+                                                                                                                                       # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                                                                                                                                       def                                                                                                                                        convert_prepost_incdec                                                                                                                                       (arg0)                                                                                                                                       :
+                                                                                                                                          # my (line) = @_
+                                                                                                                                          # my @valid_python = ()
+                                                                                                                                          # my op = get_incdec_op(line)
+                                                                                                                                          if (has_post_dec(line):
+                                                                                                                                             # debug("Post Increment or Decrement Detected on:- line")
+                                                                                                                                             # my var = get_post_var(line)
+                                                                                                                                             line = strip_prepost_incdec(line)
+                                                                                                                                             if ( !is_single_word_line(line);): # push @valid_python, line                                                                                                                                             
+
+                                                                                                                                             # push @valid_python, "var op= 1"
+                                                                                                                                          elif (has_pre_dec(line) || has_pre_inc(line)):
+                                                                                                                                             # debug("Pre Increment or Decrement Detected on:- line")
+                                                                                                                                             # my var = get_pre_var(line)
+                                                                                                                                             line = strip_prepost_incdec(line)
+                                                                                                                                             # push @valid_python, "var op= 1"
+                                                                                                                                             if ( !is_single_word_line(line);): # push @valid_python, line                                                                                                                                             
+
+                                                                                                                                          else:
+                                                                                                                                             # push @valid_python, line
+                                                                                                                                          # return @valid_python
+                                                                                                                                       
+                                                                                                                                       
+                                                                                                                                       def                                                                                                                                        convert_set_to_python                                                                                                                                       (arg0)                                                                                                                                       :
+                                                                                                                                          # my (line) = @_

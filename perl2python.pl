@@ -5,6 +5,11 @@
 # *********************************
 # *********************************
 
+# Style Notes:-
+# If the first character of a variable is capitalised, this implies that the variable is a 
+# reference to another variable does not contain any contents but a pointer to the actual data
+
+#use constant NOT_CONVERTED => -1;
 #use strict;
 
 # #############################################################################################
@@ -16,7 +21,7 @@
 # #############################################################################################
 
 sub convert_prepost_incdec ( $ );
-sub convert_to_python ( $$@ );
+sub convert_to_python ( $$$ );
 sub debug  ( $ );
 sub get_for_statement_condition ( $ );
 sub get_for_statement_init ( $ );
@@ -81,6 +86,7 @@ if($#ARGV > 0 && $ARGV[0] =~ /\-d/) {
 	'join' => '',
 	'=~ s/' => 're.sub',
 	'=~ /' => 're.match',
+	'sub' => 'def',
 );
 
 # Process Files
@@ -90,12 +96,16 @@ if($#ARGV > 0 && $ARGV[0] =~ /\-d/) {
 foreach my $file (@ARGV) {
 	open(PERL, $file) or die "$0: Could not open file : $!\n";
 	debug("Reading from File");
-	convert_to_python(0, 0, <PERL>);
+	@perl_input = <PERL>;
+	$Perl_ref = \@perl_input;
+	convert_to_python(0, 0, $Perl_ref);
 }
 # Process Standard Input if no files were parsed
 if ( !($#ARGV >= 0) ) {
 	debug("Reading from standard input");
-	convert_to_python(0, 0, <STDIN>);
+	@std_input = <STDIN>;
+	$Stdin_ref = \@std_input;
+	convert_to_python(0, 0, $Stdin_ref);
 }
 
 
@@ -163,20 +173,28 @@ sub debug  ( $ )  {
 # #############################################################################################
 # #############################################################################################
 # #############################################################################################
-# #######################        Recursive Conversion Function          #######################
+# #######################        Recursive Conversion Functions          #######################
 # #############################################################################################
 # #############################################################################################
 # #############################################################################################
-
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Purpose:-       Recursively converts perl code to python by evaulating a line%
+#                 at a time and various syntax cases.                          %
+# Prototype:-     int  debug($tab_depth, $line_num, $Input)                    %
+# Param int       $tab_depth :- Indentation level to prepend to python output  %
+# Param int       $line_num  :- Current line number of input array             %
+# Param array ref $Input     :- Reference to array of input lines              %
+# Returns                    :- int Number of last line converted              %
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Return:- last line number read from
-sub convert_to_python ( $$@ ) {
-	my ($tab_depth, $line_num, @input) = @_;
-	debug("Tab Depth = $tab_depth and input line number = ".$line_num."/".($#input+1));
+sub convert_to_python ( $$$ ) {
+	my ($tab_depth, $line_num, $Input) = @_;
+	debug("Tab Depth = $tab_depth and input line number = ".$line_num."/".($#{$Input}+1));
 	my $curr_line = $line_num;
-	for($curr_line = $line_num; $curr_line <= $#input; $curr_line++) {
+	for($curr_line = $line_num; $curr_line <= $#{$Input}; $curr_line++) {
 		# Break up multiple lines of code into single lines
-		my $last_line = ($curr_line == $#input);
-		my $line = "$input[$curr_line]";
+		my $last_line = ($curr_line == $#{$Input});
+		my $line = "${$Input}[$curr_line]";
 		debug("Current line number = $curr_line");
 		if(!is_empty_line($line)) {
 			debug("Ignore ; since for statement line") if is_standard_for_statement_line($line);
@@ -208,10 +226,19 @@ sub convert_to_python ( $$@ ) {
 					debug("Line Type:- Comments ");
 					$single_line =~ /(#.*)/;
 					$single_line = $1;
-					if($curr_line == 0) {
-						$single_line =~ s/perl -w/python2.7 \-u/;
+					my $first_line = ($curr_line == 0);
+					# Convert Shabang 
+					$single_line =~ s/perl -w/python2.7 \-u/ if $first_line;
+					# Print all consecutive comment lines
+					output_python_line($tab_depth, ${$Input}[$curr_line], $last_line);
+					while(is_comment_line(${$Input}[$curr_line+1])) {
+						# Note ++ increments the current line counter for accurate return val
+						debug("Current line number = ".(1+$curr_line));
+						$single_line = ${$Input}[++$curr_line];
+						chomp $single_line;
+						output_python_line($tab_depth, $single_line, $last_line);
 					}
-					output_python_line($tab_depth, "$single_line", $last_line);
+					import_libraries($Input) if $first_line;
 				} elsif (is_var_declaration_line($single_line)) { 
 					# #######################################
 					# #######  Variable Declaration  #########
@@ -221,6 +248,15 @@ sub convert_to_python ( $$@ ) {
 					while($single_line =~ /\$(\w+)/g) {
 						#$vars{$line}{$1} = 1;	# This may be useful later otherwise delete it
 					}
+				} elsif (is_function_declaration($single_line)) { 
+					# #######################################
+					# #######  Function Declaration  ########
+					# #######################################
+					output_python($tab_depth, "$keywords{'sub'} ");
+					output_python($tab_depth, get_function_name($single_line));
+					output_python($tab_depth, get_function_args($single_line)); 
+					output_python($tab_depth, ":\n"); 
+					$curr_line = convert_to_python($tab_depth+1, $curr_line+1, $Input);
 				} elsif (is_prepost_incdec_line($single_line)) {
 					# #######################################
 					# #######  Pre/Post Inc/Dec Line  #######
@@ -231,69 +267,7 @@ sub convert_to_python ( $$@ ) {
 					# ########### If Statements #############
 					# #######################################
 					debug("Line Type:- If");
-					if (has_strictly_opening_brace($single_line)) {
-						# **************************************
-						# ******* Multi Line If Statement ******
-						# if (condition) {
-						# }
-						# **************************************
-						debug("Line Type:- If Type:- Multi Line");
-						my $condition = get_if_condition($single_line);
-						$condition = strip_condition_padding($condition);
-						output_python_line($tab_depth, "if ($condition):", $last_line);
-						$curr_line = convert_to_python($tab_depth+1, $curr_line+1, @input);
-					} elsif (has_both_braces($single_line)) {
-						# **************************************
-						# ************ Single Line If **********
-						# if condition { };
-						# **************************************
-						debug("Line Type:- If Type:- Single Line with braces");
-						my $routine = get_if_routine($single_line);
-						my $condition = get_if_condition($single_line);
-						$condition = strip_condition_padding($condition);
-						output_python_line($tab_depth, "if $condition: $routine", $last_line);		
-					} elsif (is_reverse_order_if_line($single_line)) {
-						# **************************************
-						# **** Reverse Order If Declarion ******
-						# command if condition;
-						# **************************************
-						debug("Line Type:- If Type:- Reverse Order");
-						$single_line =~ /^(.*)if(.*)/ or die "$0 : Unable to match single line if command at line ".($curr_line+1);
-						push my @command_to_exec, $1;
-						my $condition = $2;
-
-						$condition =~ strip_condition_padding($condition);
-						output_python($tab_depth, "if ($condition): ");
-						convert_to_python(0, 0, @command_to_exec);
-						# Add extra line for formatting purposes since last line of 
-						# array when converted will not have a new line trailing it.
-						output_python_line($tab_depth, "\n", $last_line); 
-					} elsif (!has_opening_brace($single_line) && !reverse_order_if($single_line)) {
-						# **************************************
-						# *** Not reverse order if statement ***
-						# *** no opening bracket             ***
-						# *** Opening Brace on next line     ***
-						# **************************************
-						debug("Line Type:- If Type:- Brace on Next line");
-						$single_line = strip_outer_spaces($single_line);
-						output_python_line($tab_depth, "$single_line:", $last_line);
-						$curr_line = convert_to_python($tab_depth+1, $curr_line+1, @input);
-					} elsif ($single_line =~ /elsif\s*(\(?.*)\{\s*$/) {
-						# #######################################
-						# ######### ElsIf Statements ############
-						# #######################################
-						my $condition = $1;
-						debug("Line Type:- Else If ");
-						$condition = strip_condition_padding($condition);
-						# Print to tab depth minus one and continue traversal
-						output_python_line(($tab_depth-1), "elif ($condition):", $last_line);
-					} else {
-						# **************************************
-						# ******  Undertimed If Statement ******
-						# **************************************
-						debug("Line Type:- If Type:- Undertermined !");
-						output_python_line($tab_depth, "# $single_line", $last_line);
-					}
+					$curr_line = convert_if_statement_to_python($tab_depth, $curr_line, $Input);
 				} elsif (is_else_line($single_line)) {
 					# #######################################
 					# ######### Else Statements #############
@@ -307,54 +281,7 @@ sub convert_to_python ( $$@ ) {
 					# ########## For Statements #############
 					# #######################################
 					debug("Line Type:- For ");
-					if(is_standard_for_statement_line($single_line)) {
-						# **************************************
-						# ******  Standard For Statement *******
-						# for(initialisation; condition; postexecution)
-						# **************************************
-						# Since python does not support this standard 
-						# for statement syntax, conversion to the 
-						# equivalent while statement has been implemented
-						# due to its better accuracy in translating the 
-						# purpose of this code in more cases than using 
-						# pythons "for i in set" syntax.
-						debug("Line Type:- For Type :- Standard ");
-						#$single_line = strip_outermost_braces($single_line);
-						my $initialisation = get_for_statement_init($single_line); 
-						my $condition = get_for_statement_condition($single_line);
-						$condition = strip_condition_padding($condition);
-						output_python_line($tab_depth, "$initialisation", $last_line);
-						output_python_line($tab_depth, "while ($condition):", $last_line);
-						$curr_line = convert_to_python($tab_depth+1, $curr_line+1, @input);
-						# Call convert_to_python on 
-						my @postexecution = get_for_statement_postexec($single_line);
-
-						convert_to_python($tab_depth+1, 0, @postexecution);
-						# Add extra line for formatting purposes since last line of 
-						# array when converted will not have a new line trailing it.
-						output_python_line($tab_depth, "\n", $last_line); 
-						
-						
-					} elsif (is_foreach_statement_line($single_line)) {
-						# **************************************
-						# ***  Standard Foreach Statement ******
-						# **************************************						
-						debug("Line Type:- For Type :- Foreach ");
-						my $variable = get_foreach_var($single_line);
-						my $set = get_foreach_set($single_line);
-						debug("Var = $variable");
-						debug("Set = $set");
-						output_python($tab_depth, "for $variable in ");
-						convert_set_to_python($set);
-						output_python($tab_depth, ":\n");
-						$curr_line = convert_to_python($tab_depth+1, $curr_line+1, @input);
-					} else {
-						# **************************************
-						# ******  Undertimed For Statement *****
-						# **************************************
-						debug("Line Type:- For Type :- Undertimed ");
-						output_python_line($tab_depth, "# $single_line", $last_line);
-					}
+					$curr_line = convert_for_statement_to_python($tab_depth, $curr_line, $Input);
 				} elsif (is_while_statement_line($single_line)) {
 					# #######################################
 					# ###########  While Loops  #############
@@ -363,7 +290,7 @@ sub convert_to_python ( $$@ ) {
 					my $condition = get_while_condition($single_line);
 					$condition = strip_condition_padding($condition);
 					output_python_line($tab_depth, "while ($condition):", $last_line);
-					$curr_line = convert_to_python($tab_depth+1, $curr_line+1, @input);
+					$curr_line = convert_to_python($tab_depth+1, $curr_line+1, $Input);
 				} elsif (is_print_line($single_line)) {
 					# #######################################
 					# ###############  Prints  ##############
@@ -410,6 +337,148 @@ sub convert_to_python ( $$@ ) {
 	}
 }
 
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Purpose:-       Recursively converts perl if statement code to python by     %
+#                 evaulating a line at a time and various syntax cases.        %                    %
+# Prototype:-     int  debug($tab_depth, $line_num, $Input)                    %
+# Param int       $tab_depth :- Indentation level to prepend to python output  %
+# Param int       $line_num  :- Current line number of input array             %
+# Param array ref $Input     :- Reference to array of input lines              %
+# Returns                    :- int Number of last line converted              %
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+sub convert_if_statement_to_python ( $$$ ) {
+	my ($tab_depth, $curr_line, $Input) = @_;
+	my $last_line = ($curr_line == $#{$Input});
+	my $single_line = ${$Input}[$curr_line];
+	chomp $single_line;
+	if (has_strictly_opening_brace($single_line)) {
+		# **************************************
+		# ******* Multi Line If Statement ******
+		# if (condition) {
+		# }
+		# **************************************
+		debug("Line Type:- If Type:- Multi Line");
+		my $condition = get_if_condition($single_line);
+		$condition = strip_condition_padding($condition);
+		output_python_line($tab_depth, "if ($condition):", $last_line);
+		$curr_line = convert_to_python($tab_depth+1, $curr_line+1, $Input);
+	} elsif (has_both_braces($single_line)) {
+		# **************************************
+		# ************ Single Line If **********
+		# if condition { };
+		# **************************************
+		debug("Line Type:- If Type:- Single Line with braces");
+		my $routine = get_if_routine($single_line);
+		my $condition = get_if_condition($single_line);
+		$condition = strip_condition_padding($condition);
+		output_python_line($tab_depth, "if $condition: $routine", $last_line);		
+	} elsif (is_reverse_order_if_line($single_line)) {
+		# **************************************
+		# **** Reverse Order If Declarion ******
+		# command if condition;
+		# **************************************
+		debug("Line Type:- If Type:- Reverse Order");
+		$single_line =~ /^(.*)if(.*)/ or die "$0 : Unable to match single line if command at line ".($curr_line+1);
+		push (my @command_to_exec, $1);
+		my $condition = $2;
+		$condition =~ strip_condition_padding($condition);
+		output_python($tab_depth, "if ($condition): ");
+		my $Command_ref = \@command_to_exec;
+		convert_to_python(0, 0, $Command_ref);
+		# Add extra line for formatting purposes since last line of 
+		# array when converted will not have a new line trailing it.
+		output_python_line($tab_depth, "\n", $last_line); 
+	} elsif (!has_opening_brace($single_line) && !is_reverse_order_if_line($single_line)) {
+		# **************************************
+		# *** Not reverse order if statement ***
+		# *** no opening bracket             ***
+		# *** Opening Brace on next line     ***
+		# **************************************
+		debug("Line Type:- If Type:- Brace on Next line");
+		$single_line = strip_outer_spaces($single_line);
+		output_python_line($tab_depth, "$single_line:", $last_line);
+		$curr_line = convert_to_python($tab_depth+1, $curr_line+1, $Input);
+	} elsif ($single_line =~ /elsif\s*(\(?.*)\{\s*$/) {
+		# #######################################
+		# ######### ElsIf Statements ############
+		# #######################################
+		my $condition = $1;
+		debug("Line Type:- Else If ");
+		$condition = strip_condition_padding($condition);
+		# Print to tab depth minus one and continue traversal
+		output_python_line(($tab_depth-1), "elif ($condition):", $last_line);
+	} else {
+		# **************************************
+		# ******  Undertimed If Statement ******
+		# **************************************
+		debug("Line Type:- If Type:- Undertermined !");
+		output_python_line($tab_depth, "# $single_line", $last_line);
+		$curr_line = convert_to_python($tab_depth+1, $curr_line+1, $Input);
+	}
+	return $curr_line;
+}
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Purpose:-       Recursively converts perl for statement code to python by    %
+#                 evaulating a line at a time and various syntax cases.        %                    %
+# Prototype:-     int  debug($tab_depth, $line_num, $Input)                    %
+# Param int       $tab_depth :- Indentation level to prepend to python output  %
+# Param int       $line_num  :- Current line number of input array             %
+# Param array ref $Input     :- Reference to array of input lines              %
+# Returns                    :- int Number of last line converted              %
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+sub convert_for_statement_to_python ( $$$ ) {
+	my ($tab_depth, $curr_line, $Input) = @_;
+	my $last_line = ($curr_line == $#{$Input});
+	my $single_line = ${$Input}[$curr_line];
+	if(is_standard_for_statement_line($single_line)) {
+		# **************************************
+		# ******  Standard For Statement *******
+		# for(initialisation; condition; postexecution)
+		# **************************************
+		# Since python does not support this standard 
+		# for statement syntax, conversion to the 
+		# equivalent while statement has been implemented
+		# due to its better accuracy in translating the 
+		# purpose of this code in more cases than using 
+		# pythons "for i in set" syntax.
+		debug("Line Type:- For Type :- Standard ");
+		#$single_line = strip_outermost_braces($single_line);
+		my $initialisation = get_for_statement_init($single_line); 
+		my $condition = get_for_statement_condition($single_line);
+		$condition = strip_condition_padding($condition);
+		output_python_line($tab_depth, "$initialisation", $last_line);
+		output_python_line($tab_depth, "while ($condition):", $last_line);
+		$curr_line = convert_to_python($tab_depth+1, $curr_line+1, $Input);
+		# Call convert_to_python on 
+		my @postexecution = get_for_statement_postexec($single_line);
+		my $Post_exec_ref = \@postexecution;
+		convert_to_python($tab_depth+1, 0, $Post_exec_ref);
+		# Add extra line for formatting purposes since last line of 
+		# array when converted will not have a new line trailing it.
+		output_python_line($tab_depth, "\n", $last_line); 
+	} elsif (is_foreach_statement_line($single_line)) {
+		# **************************************
+		# ***  Standard Foreach Statement ******
+		# **************************************						
+		debug("Line Type:- For Type :- Foreach ");
+		my $variable = get_foreach_var($single_line);
+		my $set = get_foreach_set($single_line);
+		debug("Var = $variable");
+		debug("Set = $set");
+		output_python($tab_depth, "for $variable in ");
+		convert_set_to_python($set);
+		output_python($tab_depth, ":\n");
+		$curr_line = convert_to_python($tab_depth+1, $curr_line+1, $Input);
+	} else {
+		# **************************************
+		# ******  Undertimed For Statement *****
+		# **************************************
+		debug("Line Type:- For Type :- Undertimed ");
+		output_python_line($tab_depth, "# $single_line", $last_line);
+	}
+	return $curr_line;
+}
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Purpose:-     Converts single pre/post increment/decrement statements in     %
@@ -424,17 +493,17 @@ sub convert_prepost_incdec ( $ ) {
 	my @valid_python = ();
 	my $op = get_incdec_op($line);
 	if(has_post_dec($line) || has_post_inc($line)) {
-		debug("Post Increment or Decrement Detected");
+		debug("Post Increment or Decrement Detected on:- $line");
 		my $var = get_post_var($line);
 		$line = strip_prepost_incdec($line);
-		push @valid_python, $line;
+		push @valid_python, $line if !is_single_word_line($line);
 		push @valid_python, "$var $op= 1";
 	} elsif (has_pre_dec($line) || has_pre_inc($line)) {
-		debug("Pre Increment or Decrement Detected");
+		debug("Pre Increment or Decrement Detected on:- $line");
 		my $var = get_pre_var($line);
 		$line = strip_prepost_incdec($line);
 		push @valid_python, "$var $op= 1";
-		push @valid_python, $line;
+		push @valid_python, $line if !is_single_word_line($line);
 	} else {
 		push @valid_python, $line;
 	}
@@ -447,6 +516,16 @@ sub convert_set_to_python ( $ ) {
 	output_python(0, "range($1, ".($2+1).")") if $line =~ /\s*\((.+)\s*\.\.\s*(.+)\)\s*/;
 }
 
+
+sub import_libraries ( $ ) {
+	my ($Input) = @_;
+	my $file = join("", @{$Input});
+	push @libraries, "sys" if has_system_access($file);
+	push @libraries, "re" if has_regex($file);
+	foreach my $lib (@libraries) {
+		output_python_line(0, "import $lib", 0);
+	}
+}
 
 
 # #############################################################################################
@@ -526,6 +605,16 @@ sub has_print_call ( $ ) {
 	return $line =~ /(\s|^)print\s*/;
 }
 
+sub has_regex  ( $ ) {
+	my ($line) = @_;
+	return $line =~ /\=\~/;
+}
+
+sub has_system_access  ( $ ) {
+	my ($line) = @_;
+	return $line =~ /((open)|(close)|(\<\>)|(STDIN)|(STDOUT)|(STDERR)|(\&1)|(\&2))/;
+}
+
 # ##########################################
 # ########## Is Regex Functions ############
 # ##########################################
@@ -552,7 +641,7 @@ sub is_opening_brace_line ( $ )  {
 
 sub is_comment_line ( $ ) {
 	my ($line) = @_;
-	return $line =~ /^\s*(\#.*)/;
+	return $line =~ /^\s*\#.*$/;
 }
 
 sub is_else_line ( $ ) {
@@ -600,6 +689,11 @@ sub is_single_word_line ( $ ) {
 	return $line =~ /^\S+$/;
 }
 
+sub is_function_declaration ( $ ) {
+	my ($line) = @_;
+	return $line =~ /^\s*sub\s+(\w+)\s*(\(.*?\))\s*\{?\s*$/;
+}
+
 # ##########################################
 # ######## Strip Regex Functions ###########
 # ##########################################
@@ -641,6 +735,12 @@ sub strip_invalid_python ( $ ) {
 	return @valid_python;
 }
 
+sub strip_semi_colon ( $ ) {
+	my ($line) = @_;
+	$line =~ tr/\;//;
+	return $line;	
+}
+
 sub strip_prepost_incdec ( $ ) {
 	my ($line) = @_;
 	$line =~ s/((\-\-)|(\+\+))//;
@@ -656,6 +756,7 @@ sub strip_outer_spaces ( $ ) {
 
 sub strip_condition_padding ( $ ) {
 	my ($line) = @_;
+	$line = strip_semi_colon($line);
 	$line = strip_outer_spaces($line);
 	$line = strip_outermost_braces($line);
 	$line = strip_outermost_parentheses($line);
@@ -746,3 +847,31 @@ sub get_while_condition ( $ ) {
 	return $1 if $line =~ /^\s*while\(?(.*?)\)\s*\{?\s*$/;
 	return "";
 }
+
+sub get_function_args ( $ ) {
+	my ($line) = @_;
+	return "" if !($line =~ /^\s*sub\s+(\w+)\s*(\(.*?\))\s*\{?\s*$/);
+	my $args = $2;
+	my $arguments = "(";
+	my $arg_num = 0;
+	while($args =~ /[\$\@\%]/g) {
+		$arguments .= "arg".$arg_num++;
+	}
+	$arguments .= ")";
+	return $arguments;
+}
+
+sub get_function_name ( $ ) {
+	my ($line) = @_;
+	return $1 if $line =~ /^\s*sub\s+(\w+)\s*(\(.*?\))\s*\{?\s*$/;
+	return "";
+}
+
+
+
+
+
+
+
+
+
