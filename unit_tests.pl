@@ -4,27 +4,52 @@ use Test::More;
 
 sub run_convert_tests {
 	is(convert_set_to_python('(0..10)'), 'range(0, 11)', 'Set Conversion');
+	is(convert_set_to_python('(0..1)'), 'range(0, 2)', 'Set Conversion');
+	is(convert_set_to_python('(0..4)'), 'range(0, 5)', 'Set Conversion');
 	return 1;
 }
 
 sub run_is_tests {
 	is(is_closing_brace_line('}'),                         1,          'Is Closing Brace Line');
-	is(is_closing_brace_line('}'),                         1,          'Is Closing Brace Line');
+	is(is_closing_brace_line('   }    '),                  1,          'Is Closing Brace Line');
 	is(is_comment_line('# Comment'),                       1,          'Is Comment Line');
+	is(is_comment_line('      # Comment'),                 1,          'Is Comment Line');
+	is(is_comment_line('#! /usr/bin/perl -w '),            1,          'Is Comment Line');
 	is(is_else_line('} else {'),                           1,          'Is Else Line');
+	is(is_else_line('else'),                               1,          'Is Else Line');
+	is(is_else_line(' else {'),                            1,          'Is Else Line');
+	is(is_else_line('} else '),                            1,          'Is Else Line');
 	is(is_empty_line(''),                                  1,          'Is Empty Line');
+	is(is_empty_line('    '),                              1,          'Is Empty Line');
 	is(is_foreach_statement_line('foreach $i (@array) {'), 1,          'Is Foreach Statement Line');
 	is(is_for_statement('for($i=0; $i < $x; $i++)'),       1,          'Is For Statement');
+	is(is_for_statement('foreach $i (@array) {)'),         1,          'Is For Statement');
+	is(is_for_statement('for $i (0..10) {'),               1,          'Is For Statement');
 	is(is_for_var_in_set('for $i (0..10) {'),              1,          'Is For Var in Set');
 	is(is_function_declaration('sub function_name ( $ ) { '), 1,       'Is Function Declaration');
+	is(is_function_declaration('sub function_name ( $ );'),1,       'Is Function Declaration');
+	is(is_function_declaration('sub function_name ( $ )'), 1,       'Is Function Declaration');
 	is(is_opening_brace_line('{'),                         1,          'Is Opening Brace Line');
+	is(is_opening_brace_line('   {'),                      1,          'Is Opening Brace Line');
+	is(is_opening_brace_line('{    '),                     1,          'Is Opening Brace Line');
 	is(is_prepost_incdec_line('$i--'),                     1,          'Is PrePost IncDec Line');
+	is(is_prepost_incdec_line('$i++'),                     1,          'Is PrePost IncDec Line');
+	is(is_prepost_incdec_line('$--i'),                     1,          'Is PrePost IncDec Line');
+	is(is_prepost_incdec_line('$++i'),                     1,          'Is PrePost IncDec Line');
 	is(is_print_line('print "value = " . $var . "\n"'),    1,          'Is Print Line');
+	is(is_print_line('print "value = \n"'),                1,          'Is Print Line');
+	is(is_print_line('print $var+1 . "\n"'),               1,          'Is Print Line');
 	is(is_reverse_order_if_line('print "hello" if 1;'),    1,          'Is Reverse Order If Line');
+	is(is_reverse_order_if_line('print "hello" if ($x > 2);'),1,          'Is Reverse Order If Line');
+	is(is_reverse_order_if_line('print "hello" if true && $var;'),1,          'Is Reverse Order If Line');
 	is(is_single_word_line('$i=0;'),                       1,          'Is Single Word Line');
 	is(is_standard_for_statement_line('for($i=0; $i < $x; $i++) {'), 1,'Is Standard For Statement Line');
 	is(is_var_declaration_line('$var = 2;'),               1,          'Is Var Declaration Line');
+	is(is_var_declaration_line('@var = ("hello", "goodbye");'),1,          'Is Var Declaration Line');
+	is(is_var_declaration_line('%var{$i} = 2;'),           1,          'Is Var Declaration Line');
 	is(is_while_statement_line('while ($i > $x) {'),       1,          'Is While Statement Line');
+	is(is_while_statement_line('while (true) {'),          1,          'Is While Statement Line');
+	is(is_while_statement_line('while (1) '),              1,          'Is While Statement Line'); 
 	return 1;
 }
 
