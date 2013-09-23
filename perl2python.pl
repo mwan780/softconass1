@@ -535,8 +535,16 @@ sub convert_prepost_incdec ( $ ) {
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sub convert_set_to_python ( $ ) {
 	my ($line) = @_;
-	output_python(0, "range($1, ".($2+1).")") if $line =~ /\s*\((.+)\s*\.\.\s*(.+)\)\s*/;
-	output_python(0, "$1") if $line =~ /^\s*\(\s*(@\w+)\s*\)\s*$/;
+	if($line =~ /\s*\((.+)\s*\.\.\s*([\$\@\%]\#?.+)\)\s*/) {
+		# (1..(@array)|($#array))
+		output_python(0, "range($1, $2)");
+	} elsif ($line =~ /\s*\((.+)\s*\.\.\s*(.+)\)\s*/) {
+		# (1..x+1)
+		output_python(0, "range($1, ".($2+1).")");
+	} elsif ($line =~ /^\s*\(\s*(@\w+)\s*\)\s*$/) {
+		# (@array)
+		output_python(0, "$1");
+	}
 }
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -641,7 +649,7 @@ sub has_regex  ( $ ) {
 
 sub has_system_access  ( $ ) {
 	my ($line) = @_;
-	return $line =~ /((open)|(close)|(\<\>)|(STDIN)|(STDOUT)|(STDERR)|(\&1)|(\&2))/;
+	return $line =~ /((open)|(close)|(\<\>)|(STDIN)|(STDOUT)|(STDERR)|(\&1)|(\&2)|(ARGV))/;
 }
 
 sub has_explicit_new_line  ( $ ) {
@@ -786,10 +794,12 @@ sub strip_input_methods ( $ ) {
 	$line =~ s/\<STDOUT\>/sys.stdout.write()/g;
 	$line =~ s/\<STDERR\>/sys.stderr.write()/g;
 	$line =~ s/\&1/sys.stdout.write()/g;
+	$line =~ s/\$\#ARGV/len(sys.argv)/g;
 	$line =~ s/\&2/sys.stderr.write()/g;
-	$line =~ s/\$ARGV\[(.*)\]/sys.argv[$1]/g;
+	$line =~ s/len\(\@ARGV\)/len(sys.argv)/g;
+	$line =~ s/\$ARGV\[(.*)\]/sys.argv[$1+1]/g;
 	$line =~ s/\@ARGV/sys.argv[1:]/g;
-	
+	$line =~ s/ARGV/sys.argv/g;
 	return $line;
 }
 
@@ -801,16 +811,17 @@ sub strip_comparators ( $ ) {
 
 sub strip_invalid_python ( $ ) {
 	my ($line) = @_;
+	debug("Given Output:- $line");
 	$line = strip_semi_colon($line);
-
 	$line = strip_logic_operators($line);
 	$line = strip_comparators($line);
 	$line = strip_input_methods($line);
-
 	$line = strip_dollar_signs($line);
 	$line = strip_at_signs($line);
 	#print "should be no dol signs here :- $line\n";
+
 	my @valid_python = convert_prepost_incdec($line);
+	debug("Produced Output:- @valid_python");
 	return @valid_python;
 }
 
@@ -841,7 +852,6 @@ sub strip_condition_padding ( $ ) {
 	$line = strip_outermost_parentheses($line);
 	$line = strip_outer_spaces($line);
 	return $line;
-
 }
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

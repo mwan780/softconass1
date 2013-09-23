@@ -44,3 +44,5 @@
 "Update", "2013-09-21", "11:10:54", "Coding", "Implement parse input array by reference to save on memory"
 "Update", "2013-09-21", "12:08:22", "Coding", "Implemented regex and system library checking"
 "Update", "2013-09-21", "13:14:17", "Coding", "Implemented basic function handling"
+"Update", "2013-09-21", "17:27:00", "Coding", "Added input/output, operator support for conversion"
+"Update", "2013-09-23", "13:54:30", "Coding", "Added argv conversion support"

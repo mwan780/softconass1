@@ -121,10 +121,6 @@ do
 	echo
 done
 
-
-
-
-
 # Temp File Cleanup
 cd test
 rm $tmp_file

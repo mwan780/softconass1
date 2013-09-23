@@ -39,6 +39,6 @@ sub get_function_args ( $ ) {
 
 while(<>) {
 
-	print get_function_args($_);
+	print "$1 $2 \n" if /\s*\((.+)\s*\.\.\s*([\$\@\%]\#?.+)\)\s*/;
 }
 	
