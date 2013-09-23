@@ -12,6 +12,8 @@
 #use constant NOT_CONVERTED => -1;
 #use strict;
 
+require 'unit_tests.pl';
+
 # #############################################################################################
 # #############################################################################################
 # #############################################################################################
@@ -69,6 +71,13 @@ sub strip_outermost_parentheses ( $ );
 # #############################################################################################
 # #############################################################################################
 # #############################################################################################
+
+
+run_convert_tests() or die "Failed Conversion Tests";
+run_is_tests()      or die "Failed Is Tests";
+run_has_tests()     or die "Failed Has Tests";
+run_get_tests()     or die "Failed Get Tests"; 
+run_strip_tests()   or die "Failed Strip Tests";
 
 
 # Debugging Flag
@@ -535,16 +544,19 @@ sub convert_prepost_incdec ( $ ) {
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sub convert_set_to_python ( $ ) {
 	my ($line) = @_;
+	my $result = "";
 	if($line =~ /\s*\((.+)\s*\.\.\s*([\$\@\%]\#?.+)\)\s*/) {
 		# (1..(@array)|($#array))
-		output_python(0, "range($1, $2)");
+		$result = "range($1, $2)";
 	} elsif ($line =~ /\s*\((.+)\s*\.\.\s*(.+)\)\s*/) {
 		# (1..x+1)
-		output_python(0, "range($1, ".($2+1).")");
+		$result = "range($1, ".($2+1).")";
 	} elsif ($line =~ /^\s*\(\s*(@\w+)\s*\)\s*$/) {
 		# (@array)
-		output_python(0, "$1");
+		$result = "$1";
 	}
+	output_python(0, $result);
+	return $result;
 }
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -865,19 +877,19 @@ sub strip_condition_padding ( $ ) {
 # ##########################################
 sub get_print ( $ ) {
 	my ($line) = @_;
-	return $1 if $line =~ /^\s*(print\s*\(?\s*(((\"[^\"]+\"\s*)|(\s*\$\w+\s*))[\.\,\+\-\/\*])*((\"[^\"]+\"\s*)|(\s*\$\w+\s*))\)?)/;
+	return strip_outer_spaces($1) if $line =~ /^\s*(print\s*\(?\s*(((\"[^\"]+\"\s*)|(\s*\$\w+\s*))[\.\,\+\-\/\*])*((\"[^\"]+\"\s*)|(\s*\$\w+\s*))\)?)/;
 	return "";
 }
 
 sub get_for_statement_init ( $ ) {
 	my ($line) = @_;
-	return $1 if $line =~ /\s*for\s*\(\s*(.*?);.*?;.*?\)\s*\{?\s*$/;
+	return strip_outer_spaces($1) if $line =~ /\s*for\s*\(\s*(.*?);.*?;.*?\)\s*\{?\s*$/;
 	return "";
 }
 
 sub get_for_statement_condition ( $ ) {
 	my ($line) = @_;
-	return $1 if $line =~ /\s*for\s*\(\s*.*?;(.*?);.*?\)\s*\{?\s*$/;
+	return strip_outer_spaces($1) if $line =~ /\s*for\s*\(\s*.*?;(.*?);.*?\)\s*\{?\s*$/;
 	return "";
 }
 
@@ -891,13 +903,13 @@ sub get_for_statement_postexec ( $ ) {
 
 sub get_post_var( $ ) {
 	my ($line) = @_;
-	return $1 if $line =~ /([A-Za-z_]+)((\-\-)|(\+\+))/;
+	return strip_outer_spaces($1) if $line =~ /([A-Za-z_]+)((\-\-)|(\+\+))/;
 	return "";
 }
 
 sub get_pre_var( $ ) {
 	my ($line) = @_;
-	return $4 if $line =~ /((\-\-)|(\+\+))([A-Za-z_]+)/;
+	return strip_outer_spaces($4) if $line =~ /((\-\-)|(\+\+))([A-Za-z_]+)/;
 	return "";
 }
 
@@ -909,31 +921,31 @@ sub get_incdec_op ( $ ) {
 
 sub get_if_condition ( $ ) {
 	my ($line) = @_;
-	return $1 if $line =~/^\s*if\s*(\([^\)]+\))/;
+	return strip_outer_spaces($1) if $line =~ /^\s*if\s*(\([^\)]+\))/;
 	return "";
 }
 
 sub get_if_routine ( $ ) {
 	my ($line) = @_;
-	return $2 if $line =~/^\s*if\s*(\([^\)]+\))\s*\{(.*)\}/;
+	return strip_outer_spaces($2) if $line =~ /^\s*if\s*(\([^\)]+\))\s*\{(.*)\}/;
 	return "";
 }
 
 sub get_foreach_var ( $ ) {
 	my ($line) = @_;
-	return $1 if $line =~ /\s*foreach\s*(.*?)\s*(\(.*?\))\s*\{?\s*$/;
+	return strip_outer_spaces($1) if $line =~ /\s*foreach\s*(.*?)\s*(\(.*?\))\s*\{?\s*$/;
 	return "";
 }
 
 sub get_foreach_set ( $ ) {
 	my ($line) = @_;
-	return $2 if $line =~ /\s*foreach\s*(.*?)\s*(\(.*?\))\s*\{?\s*$/;
+	return strip_outer_spaces($2) if $line =~ /\s*foreach\s*(.*?)\s*(\(.*?\))\s*\{?\s*$/;
 	return "";
 }
 
 sub get_while_condition ( $ ) {
 	my ($line) = @_;
-	return $1 if $line =~ /^\s*while\(?(.*?)\)\s*\{?\s*$/;
+	return strip_outer_spaces($1) if $line =~ /^\s*while\(?(.*?)\)\s*\{?\s*$/;
 	return "";
 }
 
@@ -941,18 +953,17 @@ sub get_function_args ( $ ) {
 	my ($line) = @_;
 	return "" if !($line =~ /^\s*sub\s+(\w+)\s*(\(.*?\))\s*\{?\s*$/);
 	my $args = $2;
-	my $arguments = "(";
+	my $arguments = ();
 	my $arg_num = 0;
 	while($args =~ /[\$\@\%]/g) {
-		$arguments .= "arg".$arg_num++;
+		push @arguments, "arg".$arg_num++;
 	}
-	$arguments .= ")";
-	return $arguments;
+	return strip_outer_spaces("(".join(', ', @arguments).")");
 }
 
 sub get_function_name ( $ ) {
 	my ($line) = @_;
-	return $1 if $line =~ /^\s*sub\s+(\w+)\s*(\(.*?\))\s*\{?\s*$/;
+	return strip_outer_spaces($1) if $line =~ /^\s*sub\s+(\w+)\s*(\(.*?\))\s*\{?\s*$/;
 	return "";
 }
 

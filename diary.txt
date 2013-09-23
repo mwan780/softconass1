@@ -46,3 +46,4 @@
 "Update", "2013-09-21", "13:14:17", "Coding", "Implemented basic function handling"
 "Update", "2013-09-21", "17:27:00", "Coding", "Added input/output, operator support for conversion"
 "Update", "2013-09-23", "13:54:30", "Coding", "Added argv conversion support"
+"Update", "2013-09-23", "22:00:48", "Testing", " Wrote Unit tests for regex and specific functions"
