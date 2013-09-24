@@ -1,5 +1,22 @@
 Running testall.sh
-Testing .... subset1.pl
+Testing .... answer0.pl
+answer1.pl
+answer2.pl
+answer3.pl
+answer4.pl
+answer5.pl
+answer6.pl
+devowel.pl
+echo_2.pl
+echonl_0.pl
+echonl_1.pl
+five.pl
+hello_world.pl
+iota.pl
+line_count.1.pl
+prime0.pl
+size.pl
+subset1.pl
 subset2_answer0.pl
 subset2_answer1.pl
 subset2_answer2.pl
@@ -11,11 +28,151 @@ subset3_five.pl
 subset3_iota.pl
 subset4_odd.pl
 subset4_size.pl
+test0.pl
+test1.pl
+test2.pl
+test3.pl
+test4.pl
+test5.pl
+test6.pl
+test7.pl
+test8.pl
+test9.pl
+tetrahedral.pl
+zcookie0.pl
+zodd0.pl
 ######################################
-Converting perl-to-python for subset1.pl
+Converting perl-to-python for answer0.pl
+######################################
+
+Test:- answer0:-
+Test:- Direct Comparison Source Code Check......................0... Passed ............ answer0
+Test:- Compilation Test.........................................0... Passed ............ answer0
+42								42
+
+Test:- Program Output Comparison Check..........................0... Passed ............ answer0
+
+
+######################################
+Converting perl-to-python for answer1.pl
+######################################
+
+Test:- answer1:-
+Test:- Direct Comparison Source Code Check......................0... Passed ............ answer1
+Test:- Compilation Test.........................................0... Passed ............ answer1
+42								42
+
+Test:- Program Output Comparison Check..........................0... Passed ............ answer1
+
+
+######################################
+Converting perl-to-python for answer2.pl
+######################################
+
+Test:- answer2:-
+Test:- Direct Comparison Source Code Check......................0... Passed ............ answer2
+Test:- Compilation Test.........................................0... Passed ............ answer2
+42								42
+
+Test:- Program Output Comparison Check..........................0... Passed ............ answer2
+
+
+######################################
+Converting perl-to-python for answer3.pl
 ######################################
 							      <
 
-Test:- subset1:-
-Test:- Direct Comparison Source Code Check......................1... Failed ............ subset1
-Test:- Compilation Test.........................................0... Passed ............ subset1
+Test:- answer3:-
+Test:- Direct Comparison Source Code Check......................1... Failed ............ answer3
+Test:- Compilation Test.........................................0... Passed ............ answer3
+42								42
+
+Test:- Program Output Comparison Check..........................0... Passed ............ answer3
+
+
+######################################
+Converting perl-to-python for answer4.pl
+######################################
+
+Test:- answer4:-
+Test:- Direct Comparison Source Code Check......................0... Passed ............ answer4
+Test:- Compilation Test.........................................0... Passed ............ answer4
+42								42
+
+Test:- Program Output Comparison Check..........................0... Passed ............ answer4
+
+
+######################################
+Converting perl-to-python for answer5.pl
+######################################
+
+Test:- answer5:-
+Test:- Direct Comparison Source Code Check......................0... Passed ............ answer5
+Test:- Compilation Test.........................................0... Passed ............ answer5
+42								42
+
+Test:- Program Output Comparison Check..........................0... Passed ............ answer5
+
+
+######################################
+Converting perl-to-python for answer6.pl
+######################################
+							      <
+
+Test:- answer6:-
+Test:- Direct Comparison Source Code Check......................1... Failed ............ answer6
+Test:- Compilation Test.........................................0... Passed ............ answer6
+42								42
+
+Test:- Program Output Comparison Check..........................0... Passed ............ answer6
+
+
+######################################
+Converting perl-to-python for devowel.pl
+######################################
+import fileinput, re					      |	import sys
+							      >	re
+for line in fileinput.input():				      |	while line = <>:
+    line = line.rstrip()				      |	    # chomp line
+    line = re.sub(r'[aeiou]', '', line)			      |	    line =~ s/[aeiou]//g
+
+Test:- devowel:-
+Test:- Direct Comparison Source Code Check......................1... Failed ............ devowel
+Test:- Compilation Test.........................................1... Failed ............ devowel
+
+
+######################################
+Converting perl-to-python for echo_2.pl
+######################################
+#!/usr/bin/python					      |	#!/usr/bin/python2.7 -u
+import sys						      |	# writen by andrewtcse.unsw.edu.au as a COMP2041 example
+# writen by andrewt@cse.unsw.edu.au as a COMP2041 example     <
+							      >	import sys
+print " ".join(sys.argv[1:])				      |	print join(' ', sys.argv[1:]), "\n"
+
+Test:- echo_2:-
+Test:- Direct Comparison Source Code Check......................1... Failed ............ echo_2
+Test:- Compilation Test.........................................1... Failed ............ echo_2
+
+
+######################################
+Converting perl-to-python for echonl_0.pl
+######################################
+#!/usr/bin/python					      |	#!/usr/bin/python2.7 -u
+
+Test:- echonl_0:-
+Test:- Direct Comparison Source Code Check......................1... Failed ............ echonl_0
+Test:- Compilation Test.........................................0... Passed ............ echonl_0
+
+Test:- Program Output Comparison Check..........................0... Passed ............ echonl_0
+
+
+######################################
+Converting perl-to-python for echonl_1.pl
+######################################
+#!/usr/bin/python					      |	#!/usr/bin/python2.7 -u
+        print sys.argv[i+1]				      |	    print "sys.argv[i+1]"
+
+Test:- echonl_1:-
+Test:- Direct Comparison Source Code Check......................1... Failed ............ echonl_1
+Test:- Compilation Test.........................................0... Passed ............ echonl_1

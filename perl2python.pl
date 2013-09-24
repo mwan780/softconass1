@@ -22,45 +22,81 @@
 # #############################################################################################
 # #############################################################################################
 
-sub convert_prepost_incdec ( $ );
-sub convert_to_python ( $$$$ );
-sub debug  ( $ );
-sub get_for_statement_condition ( $ );
-sub get_for_statement_init ( $ );
-sub get_for_statement_postexec ( $ );
-sub get_incdec_op ( $ );
-sub get_post_var( $ );
-sub get_pre_var( $ );
-sub get_print ( $ );
-sub has_both_braces  ( $ );
-sub has_closing_then_opening_braces  ( $ );
-sub has_opening_brace  ( $ );
-sub has_post_dec ( $ );
-sub has_post_inc ( $ );
-sub has_pre_dec ( $ );
-sub has_pre_inc ( $ );
-sub has_prepost_incdec ( $ );
-sub has_strictly_closing_brace  ( $ );
-sub has_strictly_opening_brace  ( $ );
-sub is_closing_brace_line ( $ );
-sub is_comment_line ( $ );
-sub is_else_line ( $ );
-sub is_empty_line ( $ );
-sub is_foreach_statement_line ( $ );
-sub is_for_statement ( $ );
-sub is_opening_brace_line ( $ );
-sub is_print_line ( $ );
-sub is_reverse_order_if_line ( $ );
-sub is_standard_for_statement_line ( $ );
-sub is_var_declaration_line ( $ );
 sub output_python ( $$$ );
 sub output_python_line ( $$$$ );
-sub strip_dollar_signs ( $ );
-sub strip_invalid_python ( $ );
-sub strip_new_line ( $ );
-sub strip_outermost_braces ( $ );
+sub debug  ( $ );
+sub format_output ( @ );
+sub array_compare ( $$$ );
+sub python_file ( $ );
+sub convert_to_python ( $$$$ );
+sub convert_if_statement_to_python ( $$$$ );
+sub convert_for_statement_to_python ( $$$$ );
+sub convert_prepost_incdec ( $ );
+sub convert_set_to_python ( $ );
+sub import_libraries ( $ );
+sub has_opening_brace  ( $ );
+sub has_strictly_closing_brace  ( $ );
+sub has_strictly_opening_brace  ( $ );
+sub has_both_braces  ( $ );
+sub has_closing_then_opening_braces  ( $ );
+sub has_pre_inc ( $ );
+sub has_pre_dec ( $ );
+sub has_post_inc ( $ );
+sub has_post_dec ( $ );
+sub has_prepost_incdec ( $ );
+sub has_print_call ( $ );
+sub has_regex  ( $ );
+sub has_system_access  ( $ );
+sub has_explicit_new_line  ( $ );
+sub is_empty_line ( $ );
+sub is_var_declaration_line ( $ );
+sub is_closing_brace_line ( $ );
+sub is_opening_brace_line ( $ );
+sub is_comment_line ( $ );
+sub is_else_line ( $ );
+sub is_print_line ( $ );
+sub is_standard_if ( $ );
+sub is_reverse_order_if_line ( $ );
+sub is_for_statement ( $ );
+sub is_standard_for_statement_line ( $ );
+sub is_foreach_statement_line ( $ );
+sub is_for_var_in_set ( $ );
+sub is_prepost_incdec_line ( $ );
+sub is_while_statement_line ( $ );
+sub is_single_word_line ( $ );
+sub is_function_declaration ( $ );
+sub is_function_arg_dec_line ( $ );
+sub is_single_condition ( $ );
 sub strip_outermost_parentheses ( $ );
-
+sub strip_outermost_braces ( $ );
+sub strip_dollar_signs ( $ );
+sub strip_new_line ( $ );
+sub strip_at_signs ( $ );
+sub strip_logic_operators ( $ );
+sub strip_input_methods ( $ );
+sub strip_comparators ( $ );
+sub strip_invalid_python ( $ );
+sub strip_semi_colon ( $ );
+sub strip_prepost_incdec ( $ );
+sub strip_outer_spaces ( $ );
+sub strip_condition_padding ( $ );
+sub get_print ( $ );
+sub get_for_statement_init ( $ );
+sub get_for_statement_condition ( $ );
+sub get_for_statement_postexec ( $ );
+sub get_post_var( $ );
+sub get_pre_var( $ );
+sub get_incdec_op ( $ );
+sub get_if_condition ( $ );
+sub get_if_routine ( $ );
+sub get_reverse_if_condition ( $ );
+sub get_reverse_if_routine ( $ );
+sub get_foreach_var ( $ );
+sub get_foreach_set ( $ );
+sub get_while_condition ( $ );
+sub get_function_prototype_args ( $ );
+sub get_function_defined_args ( $ );
+sub get_function_name ( $ );
 
 
 
@@ -106,8 +142,15 @@ foreach my $file (@ARGV) {
 	@python_output = ();
 	$Python_ref = \@python_output;
 	convert_to_python(0, 0, $Perl_ref, $Python_ref);
-#	$\ = "\n";
-	print @python_output;
+	@python_output = format_output(@python_output);
+	
+
+	for $i (0..$#python_output) {
+		print "$python_output[$i]\n";
+	}
+	@expected = <EXP> if open(EXP, python_file($file));
+	$Expected_ref = \@expected;
+	array_compare($Perl_ref, $Python_ref, $Expected_ref);
 }
 # Process Standard Input if no files were parsed
 if ( !($#ARGV >= 0) ) {
@@ -118,8 +161,14 @@ if ( !($#ARGV >= 0) ) {
 	$Python_ref = \@python_output;
 	convert_to_python(0, 0, $Stdin_ref, $Python_ref);
 #	$\ = "\n";
-	print @python_output;
+	@python_output = format_output(@python_output);
+	
+	for $i (0..$#python_output) {
+		print "$python_output[$i]\n";
+	}
+	array_compare($Perl_ref, $Python_ref, "");
 }
+
 
 
 # #############################################################################################
@@ -188,6 +237,34 @@ sub debug  ( $ )  {
 	print "Debug:- $message\n" if $debug;
 }
 
+sub format_output ( @ ) {
+	my (@input) = @_;
+	my $string = join('', @input);
+	@input = split('\n', $string);
+	return @input;
+}
+
+
+sub array_compare ( $$$ ) {
+	my ($Input, $Output, $Expected) = @_;
+	print "\n\n############## Input ############################################# Output #################################################### Expected ############################\n\n" if $debug;
+	for my $i (0..$#{$Output}) {
+		my $input = ${$Input}[$i];
+		my $output = ${$Output}[$i];
+		my $expected = ${$Expected}[$i];
+		chomp($input);
+		chomp($output);
+		chomp($expected);
+		printf "%-60s %-60s %-60s\n", $input, $output, $expected if $debug;
+	}
+	print "############## Input ############################################# Output #################################################### Expected ############################\n" if $debug;
+}
+
+sub python_file ( $ ) {
+	my ($file) = @_;
+	$file =~ s/l$/y/;
+	return $file;
+}
 # #############################################################################################
 # #############################################################################################
 # #############################################################################################

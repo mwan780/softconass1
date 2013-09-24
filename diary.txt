@@ -49,3 +49,4 @@
 "Update", "2013-09-23", "22:00:48", "Testing", " Wrote Unit tests for regex and specific functions"
 "Start", "2013-09-24", "14:18:29", "Coding Tests", "Updated Unit Tests and provided more test cases. Identified some problems in code which were fixed"
 "Update", "2013-09-24", "15:49:22", "Coding", "Changed Function Args to check ck if next line has variable declarations"
+"Update", "2013-09-24", "20:27:27", "Coding", "Changed Output to array instead of stdout for dynamic output"
