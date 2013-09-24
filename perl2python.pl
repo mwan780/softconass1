@@ -12,7 +12,7 @@
 #use constant NOT_CONVERTED => -1;
 #use strict;
 
-require 'unit_tests.pl';
+
 
 # #############################################################################################
 # #############################################################################################
@@ -73,11 +73,6 @@ sub strip_outermost_parentheses ( $ );
 # #############################################################################################
 
 
-run_convert_tests() or die "Failed Conversion Tests";
-run_is_tests()      or die "Failed Is Tests";
-run_has_tests()     or die "Failed Has Tests";
-run_get_tests()     or die "Failed Get Tests"; 
-run_strip_tests()   or die "Failed Strip Tests";
 
 
 # Debugging Flag
@@ -85,11 +80,12 @@ run_strip_tests()   or die "Failed Strip Tests";
 if($#ARGV > 0 && $ARGV[0] =~ /\-d/) {
 	$debug = 1;
 	shift @ARGV;
+	require 'unit_tests.pl';
 } 
 
 %keywords = (
 	'last' => 'break',
-	'continue' => 'continue',
+	'next' => 'continue',
 	'print' => 'print',
 	'split' => '',
 	'join' => '',
@@ -103,7 +99,7 @@ if($#ARGV > 0 && $ARGV[0] =~ /\-d/) {
 # If so execute the conversion to each file individually
 # If not continue to Standard Input processing below
 foreach my $file (@ARGV) {
-	open(PERL, $file) or die "$0: Could not open file : $!\n";
+	open(PERL, $file) or die "$0: Could not open '$file' : $!\n";
 	debug("Reading from File");
 	@perl_input = <PERL>;
 	$Perl_ref = \@perl_input;
@@ -138,10 +134,10 @@ sub output_python ( $$ ) {
 	my @valid_python = strip_invalid_python($python);
 	foreach my $python_line (@valid_python) {
 		#print "Output:- " if $debug;
-		for(my $count = 0; $count < $tab_depth; $count++) {
+		for my $count (0..$tab_depth-1) {
 			print "   ";
 		}
-		print "$python_line";
+		print "$python_line ";
 	}
 }
 
@@ -159,7 +155,7 @@ sub output_python_line ( $$$ ) {
 	my @valid_python = strip_invalid_python($python);
 	foreach my $python_line (@valid_python) {
 		print "Output:- " if $debug;
-		for(my $count = 0; $count < $tab_depth; $count++) {
+		for my $count (0..$tab_depth-1) {
 			print "   ";
 		}
 		print "$python_line";
@@ -264,10 +260,19 @@ sub convert_to_python ( $$$ ) {
 					# #######################################
 					# #######  Function Declaration  ########
 					# #######################################
-					output_python($tab_depth, "$keywords{'sub'} ");
+					output_python($tab_depth, "$keywords{'sub'}");
 					output_python(0, get_function_name($single_line));
-					output_python(0, get_function_args($single_line)); 
-					output_python(0, ":\n"); 
+					if (is_function_arg_dec_line(${$Input}[$curr_line+1])) {
+						# If Function Argument Declaration then 
+						# Declare functions accordingly.
+						output_python(0, get_function_prototype_args($single_line)); 	
+					} else {
+						# Declare Function Arguments as best as possible
+
+					}
+					
+					
+					output_python_line(0, ":\n", $last_line); 
 					$curr_line = convert_to_python($tab_depth+1, $curr_line+1, $Input);
 				} elsif (is_prepost_incdec_line($single_line)) {
 					# #######################################
@@ -395,10 +400,8 @@ sub convert_if_statement_to_python ( $$$ ) {
 		# command if condition;
 		# **************************************
 		debug("Line Type:- If Type:- Reverse Order");
-		$single_line =~ /^(.*)if(.*)\;?$/ or die "$0 : Unable to match single line if command at line ".($curr_line+1);
-		push (my @command_to_exec, $1);
-		my $condition = $2;
-		$condition = strip_condition_padding($condition);
+		push (my @command_to_exec, get_reverse_if_routine($single_line));
+		my $condition = get_reverse_if_condition($single_line);
 		output_python($tab_depth, "if ($condition): ");
 		my $Command_ref = \@command_to_exec;
 		convert_to_python(0, 0, $Command_ref);
@@ -612,22 +615,22 @@ sub has_strictly_opening_brace  ( $ )  {
 
 sub has_both_braces  ( $ )  {
 	my ($line) = @_;
-	return $line =~ /^[^\{]*\{[^\}]*\}[^\{\}]$/;	
+	return $line =~ /^[^\{\}]*[\{\}][^\}\{]*[\}\{][^\{\}]*$/;	
 }
 
 sub has_closing_then_opening_braces  ( $ )  {
 	my ($line) = @_;
-	return $line =~ /^[^\}]*\}[^\{]*\{[^\{\}]$/;
+	return $line =~ /^[^\}]*\}[^\{]*\{[^\{\}]*$/;
 }
 
 sub has_pre_inc ( $ ) {
 	my ($line) = @_;
-	return $line =~ /\+\+\w/;
+	return $line =~ /\+\+\$?\w/;
 }
 
 sub has_pre_dec ( $ ) {
 	my ($line) = @_;
-	return $line =~ /\-\-\w/;
+	return $line =~ /\-\-\$?\w/;
 }
 
 sub has_post_inc ( $ ) {
@@ -675,12 +678,12 @@ sub has_explicit_new_line  ( $ ) {
 
 sub is_empty_line ( $ ) {
 	my ($line) = @_;
-	return $line =~ /^$/;
+	return $line =~ /^\s*$/;
 }
 
 sub is_var_declaration_line ( $ ) {
 	my ($line) = @_;
-	return $line =~ /^\s*[\$\@\%]\w+\s*\=\s*[\"\']?.*[\"\']?\s*$/;	
+	return $line =~ /^\s*[\$\@\%]\w+.*?\s*\=\s*[\"\']?.*[\"\']?\s*$/;	
 } 
 
 sub is_closing_brace_line ( $ ) {
@@ -700,7 +703,7 @@ sub is_comment_line ( $ ) {
 
 sub is_else_line ( $ ) {
 	my ($line) = @_;
-	return $line =~ /^\s*\}\s*els[ie]f?\s*\{\s*$/;
+	return $line =~ /^\s*\}?\s*els[ie]f?\s*\{?\s*$/;
 }
 
 sub is_print_line ( $ ) {
@@ -750,7 +753,12 @@ sub is_single_word_line ( $ ) {
 
 sub is_function_declaration ( $ ) {
 	my ($line) = @_;
-	return $line =~ /^\s*sub\s+(\w+)\s*(\(.*?\))\s*\{?\s*$/;
+	return $line =~ /^\s*sub\s+(\w+)\s*(\(?.*?\)?)?\s*[\;\{]?\s*$/;
+}
+
+sub is_function_arg_dec_line ( $ ) {
+	my ($line) = @_;
+	return $line =~ /^\s*my.*?\(.*\$.+?\)+\s*=.*?\@_.*\s*$/;	
 }
 
 # ##########################################
@@ -761,7 +769,7 @@ sub strip_outermost_parentheses ( $ )  {
 	my $no_parentheses_line = $line;
 	$no_parentheses_line =~ s/^([^\(]*)\(/$1/;
 	$no_parentheses_line =~ s/^(.*)\)([^\)]*$)/$1$2/;
-	return $no_parentheses_line;
+	return strip_outer_spaces($no_parentheses_line);
 }
 
 sub strip_outermost_braces ( $ ) {
@@ -770,34 +778,34 @@ sub strip_outermost_braces ( $ ) {
 	# Also replaces first occuring brace with a :
 	$no_braces_line =~ s/^([^\{]*)\{/$1:/;
 	$no_braces_line =~ s/^(.*)\}([^\}]*$)/$1$2/;
-	return $no_braces_line;
+	return strip_outer_spaces($no_braces_line);
 }
 
 sub strip_dollar_signs ( $ ) {
 	my ($line) = @_;
 	my $var_line = $line;
 	$var_line =~ s/\$(\w+)/$1/g;
-	return $var_line;
+	return strip_outer_spaces($var_line);	
 }
 
 sub strip_new_line ( $ ) {
 	my ($line) = @_;
 	$line =~ s/(".*)\\n(.*\".*)$/$1$2/;
-	return $line;
+	return strip_outer_spaces($line);	
 }
 
 sub strip_at_signs ( $ ) {
 	my ($line) = @_;
 	$line =~ s/\@//g;
-	return $line;
+	return strip_outer_spaces($line);	
 }
 
 sub strip_logic_operators ( $ ) {
 	my ($line) = @_;
-	$line =~ s/\&\&/ and /g;
-	$line =~ s/\|\|/ or /g;
-	$line =~ s/\!/ not /g if $line !~ /\#\!/;
-	return $line;
+	$line =~ s/\&\&/and/g;
+	$line =~ s/\|\|/or/g;
+	$line =~ s/\!/not/g if $line !~ /\#\!/;
+	return strip_outer_spaces($line);	
 }
 
 sub strip_input_methods ( $ ) {
@@ -812,13 +820,13 @@ sub strip_input_methods ( $ ) {
 	$line =~ s/\$ARGV\[(.*)\]/sys.argv[$1+1]/g;
 	$line =~ s/\@ARGV/sys.argv[1:]/g;
 	$line =~ s/ARGV/sys.argv/g;
-	return $line;
+	return strip_outer_spaces($line);	
 }
 
 sub strip_comparators ( $ ) {
 	my ($line) = @_;
 	$line =~ s/\seq\s/ == /g;
-	return $line;
+	return strip_outer_spaces($line);	
 }
 
 sub strip_invalid_python ( $ ) {
@@ -840,13 +848,13 @@ sub strip_invalid_python ( $ ) {
 sub strip_semi_colon ( $ ) {
 	my ($line) = @_;
 	$line =~ s/\;//g;
-	return $line;	
+	return strip_outer_spaces($line);	
 }
 
 sub strip_prepost_incdec ( $ ) {
 	my ($line) = @_;
 	$line =~ s/((\-\-)|(\+\+))//g;
-	return $line;	
+	return strip_outer_spaces($line);	
 }
 
 sub strip_outer_spaces ( $ ) {
@@ -895,21 +903,19 @@ sub get_for_statement_condition ( $ ) {
 
 sub get_for_statement_postexec ( $ ) {
 	my ($line) = @_;
-	my @exec_lines = split /,/, $1 if $line =~ /\s*for\s*\(\s*.*?;.*?;(.*?)\)\s*\{?\s*$/;
+	my @exec_lines = split /,/, $1 if $line =~ /\s*for\s*\(\s*.*?;.*?;\s*(.*?)\)\s*\{?\s*$/;
 	return @exec_lines;
 }
 
-
-
 sub get_post_var( $ ) {
 	my ($line) = @_;
-	return strip_outer_spaces($1) if $line =~ /([A-Za-z_]+)((\-\-)|(\+\+))/;
+	return strip_outer_spaces($1) if $line =~ /(\$?[A-Za-z_]+)((\-\-)|(\+\+))/;
 	return "";
 }
 
 sub get_pre_var( $ ) {
 	my ($line) = @_;
-	return strip_outer_spaces($4) if $line =~ /((\-\-)|(\+\+))([A-Za-z_]+)/;
+	return strip_outer_spaces($4) if $line =~ /((\-\-)|(\+\+))(\$?[A-Za-z_]+)/;
 	return "";
 }
 
@@ -931,6 +937,18 @@ sub get_if_routine ( $ ) {
 	return "";
 }
 
+sub get_reverse_if_condition ( $ ) {
+	my ($line) = @_;
+	return strip_condition_padding($2) if $line =~ /\s*(.+)\s+if\s*(\(?.+\)?)\s*\;?\s*$/;
+	return "";
+}
+
+sub get_reverse_if_routine ( $ ) {
+	my ($line) = @_;
+	return strip_outer_spaces($1) if $line =~ /\s*(.+)\s+if\s*(\(?.+\)?)\s*\;?\s*$/;
+	return "";
+}
+
 sub get_foreach_var ( $ ) {
 	my ($line) = @_;
 	return strip_outer_spaces($1) if $line =~ /\s*foreach\s*(.*?)\s*(\(.*?\))\s*\{?\s*$/;
@@ -945,25 +963,25 @@ sub get_foreach_set ( $ ) {
 
 sub get_while_condition ( $ ) {
 	my ($line) = @_;
-	return strip_outer_spaces($1) if $line =~ /^\s*while\(?(.*?)\)\s*\{?\s*$/;
+	return strip_outer_spaces($1) if $line =~ /^\s*while\s*\(?(.*?)\)\s*\{?\s*$/;
 	return "";
 }
 
-sub get_function_args ( $ ) {
+sub get_function_prototype_args ( $ ) {
 	my ($line) = @_;
 	return "" if !($line =~ /^\s*sub\s+(\w+)\s*(\(.*?\))\s*\{?\s*$/);
 	my $args = $2;
-	my $arguments = ();
+	my @arguments = ();
 	my $arg_num = 0;
 	while($args =~ /[\$\@\%]/g) {
-		push @arguments, "arg".$arg_num++;
+		push (@arguments, "arg".$arg_num++);
 	}
 	return strip_outer_spaces("(".join(', ', @arguments).")");
 }
 
 sub get_function_name ( $ ) {
 	my ($line) = @_;
-	return strip_outer_spaces($1) if $line =~ /^\s*sub\s+(\w+)\s*(\(.*?\))\s*\{?\s*$/;
+	return strip_outer_spaces($1) if $line =~ /^\s*sub\s+(\w+)\s*(\(?.*?\)?)\s*\{?\s*$/;
 	return "";
 }
 

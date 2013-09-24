@@ -10,39 +10,13 @@ PID="`ps -ea | grep $0`"
 tmp_file="$program_name$(date +%Y-%m-%d_%H:%M:%S)$PID.tmp"
 echo Running $program_name
 
-# Perform temp file cleanup
-echo "******************************"
-echo "******************************"
-echo "*** Performing Temp Cleanup***"
-echo "******************************"
-echo "******************************"
-cd ./test
-for i in 1 2
-do 
-	old_temps="`ls -1 | egrep -i '$program_name.*\.tmp'`"
-	for temp in $old_temps
-	do
-		echo "Trying to delete $temp"
-		rm -f $temp
-		result=$?
-		if [ $result -eq 0 ]; then
-			echo "Old Temp File $temp was deleted" 
-		fi
-	done
-done
-
-echo 
-echo 
-echo
-
-
 die() {
 	if [ $1 -ne 0 ]; then
 		echo "$2" >&2
 		exit 1
 	fi
 }
-
+cd $1
 files="`ls *.pl`"
 echo "Testing .... $files"
 for answer in $files
