@@ -32,7 +32,7 @@ do
 		echo "$0 : Error - perl2python output to temp file failed" >&2
 		break;
 	fi 
-	diff -y $curr_file_name.py $tmp_file
+	diff -yw --suppress-common-line $curr_file_name.py $tmp_file
 	result=$?
 	echo
 	echo "Test:- $curr_file_name:-"

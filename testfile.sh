@@ -8,7 +8,7 @@ python_file="`echo $1 | cut -f1 -d '.'`"
 echo "Compiling file $1"
 ./perl2python.pl $1 > $tmp_file
 echo "Source Code Comparison"
-diff -y $tmp_file $python_file.py
+diff -yw --suppress-common-line $tmp_file $python_file.py
 result=$?
 echo
 if [ $result -ne 0 ]; then
@@ -19,7 +19,7 @@ fi
 
 echo "Compilation Test"
 chmod +x $tmp_file
-./$tmp_file
+./$tmp_file $program_name.*
 result=$?
 echo
 if [ $result -ne 0 ]; then
@@ -31,8 +31,8 @@ fi
 
 echo "Output Comparison "
 ./$1 > expected$tmp_file
-./$tmp_file > generated$tmp_file
-diff -y generated$tmp_file expected$tmp_file
+./$tmp_file $program_name.* > generated$tmp_file
+diff -yw  --suppress-common-line generated$tmp_file expected$tmp_file
 result=$?
 echo
 if [ $result -ne 0 ]; then

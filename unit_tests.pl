@@ -88,6 +88,7 @@ sub run_has_tests {
 
 sub run_get_tests {
 	is(get_foreach_set('foreach $i (@array) {'),               '(@array)',        'Get Foreach Set');
+	is(get_foreach_set('foreach $i (0..4) {'),                 '(0..4)',        'Get Foreach Set');
 	is(get_foreach_var('foreach $i (@array) {'),               '$i',              'Get Foreach Var'); 
 	is(get_for_statement_condition('for($i=0; $i < $x; $i++)'),'$i < $x',         'Get For Statement Condition');
 	is(get_for_statement_init('for($i=0; $i < $x; $i++)'),     '$i=0',            'Get For Statement Initialisation');            
