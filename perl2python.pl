@@ -34,69 +34,7 @@ sub convert_for_statement_to_python ( $$$$ );
 sub convert_prepost_incdec ( $ );
 sub convert_set_to_python ( $ );
 sub import_libraries ( $ );
-sub has_opening_brace  ( $ );
-sub has_strictly_closing_brace  ( $ );
-sub has_strictly_opening_brace  ( $ );
-sub has_both_braces  ( $ );
-sub has_closing_then_opening_braces  ( $ );
-sub has_pre_inc ( $ );
-sub has_pre_dec ( $ );
-sub has_post_inc ( $ );
-sub has_post_dec ( $ );
-sub has_prepost_incdec ( $ );
-sub has_print_call ( $ );
-sub has_regex  ( $ );
-sub has_system_access  ( $ );
-sub has_explicit_new_line  ( $ );
-sub is_empty_line ( $ );
-sub is_var_declaration_line ( $ );
-sub is_closing_brace_line ( $ );
-sub is_opening_brace_line ( $ );
-sub is_comment_line ( $ );
-sub is_else_line ( $ );
-sub is_print_line ( $ );
-sub is_standard_if ( $ );
-sub is_reverse_order_if_line ( $ );
-sub is_for_statement ( $ );
-sub is_standard_for_statement_line ( $ );
-sub is_foreach_statement_line ( $ );
-sub is_for_var_in_set ( $ );
-sub is_prepost_incdec_line ( $ );
-sub is_while_statement_line ( $ );
-sub is_single_word_line ( $ );
-sub is_function_declaration ( $ );
-sub is_function_arg_dec_line ( $ );
-sub is_single_condition ( $ );
-sub strip_outermost_parentheses ( $ );
-sub strip_outermost_braces ( $ );
-sub strip_dollar_signs ( $ );
-sub strip_new_line ( $ );
-sub strip_at_signs ( $ );
-sub strip_logic_operators ( $ );
-sub strip_input_methods ( $ );
-sub strip_comparators ( $ );
-sub strip_invalid_python ( $ );
-sub strip_semi_colon ( $ );
-sub strip_prepost_incdec ( $ );
-sub strip_outer_spaces ( $ );
-sub strip_condition_padding ( $ );
-sub get_print ( $ );
-sub get_for_statement_init ( $ );
-sub get_for_statement_condition ( $ );
-sub get_for_statement_postexec ( $ );
-sub get_post_var( $ );
-sub get_pre_var( $ );
-sub get_incdec_op ( $ );
-sub get_if_condition ( $ );
-sub get_if_routine ( $ );
-sub get_reverse_if_condition ( $ );
-sub get_reverse_if_routine ( $ );
-sub get_foreach_var ( $ );
-sub get_foreach_set ( $ );
-sub get_while_condition ( $ );
-sub get_function_prototype_args ( $ );
-sub get_function_defined_args ( $ );
-sub get_function_name ( $ );
+
 
 
 
@@ -108,17 +46,18 @@ sub get_function_name ( $ );
 # #############################################################################################
 # #############################################################################################
 
+require 'regex_functions.pl' or die "Could not import Regex Functions\n";
 
-
-
-# Debugging Flag
+# Debugging Flag -d
 # Must be first program argument
 if($#ARGV > 0 && $ARGV[0] =~ /\-d/) {
 	$debug = 1;
 	shift @ARGV;
+	# Call and Run All Unit Tests
 	require 'unit_tests.pl';
 } 
 
+# Hash keywords for translation later
 %keywords = (
 	'last' => 'break',
 	'next' => 'continue',
@@ -137,32 +76,49 @@ if($#ARGV > 0 && $ARGV[0] =~ /\-d/) {
 foreach my $file (@ARGV) {
 	open(PERL, $file) or die "$0: Could not open '$file' : $!\n";
 	debug("Reading from File");
+	# Place File Contents into Array
 	@perl_input = <PERL>;
+	# Get Reference to Input Contents
 	$Perl_ref = \@perl_input;
+	# Create Empty Array for Output Contents
 	@python_output = ();
+	# Get Reference to Output Contents
 	$Python_ref = \@python_output;
+	# Convert Perl Input to Python Output
+	# Places python into output array referenced
 	convert_to_python(0, 0, $Perl_ref, $Python_ref);
+	# Formats Array into individual lines	
 	@python_output = format_output(@python_output);
 	
-
+	# Print each line of the Output array
 	for $i (0..$#python_output) {
 		print "$python_output[$i]\n";
 	}
-	@expected = <EXP> if open(EXP, python_file($file));
-	$Expected_ref = \@expected;
-	array_compare($Perl_ref, $Python_ref, $Expected_ref);
+	if ($debug) {
+		# Open file with expected Python result
+		@expected = <EXP> if open(EXP, python_file($file));
+		$Expected_ref = \@expected;
+		# Compare Perl input, Python Output and Expected Output for Debugging
+		array_compare($Perl_ref, $Python_ref, $Expected_ref);
+	}
 }
 # Process Standard Input if no files were parsed
 if ( !($#ARGV >= 0) ) {
 	debug("Reading from standard input");
+	# Place Input Contents into Array
 	@std_input = <STDIN>;
+	# Get Reference to Input Contents
 	$Stdin_ref = \@std_input;
+	# Create Empty Array for Output Contents
 	@python_output = ();
+	# Get Reference to Output Contents
 	$Python_ref = \@python_output;
+	# Convert Perl Input to Python Output
+	# Places python into output array referenced
 	convert_to_python(0, 0, $Stdin_ref, $Python_ref);
-#	$\ = "\n";
+	# Formats Array into individual lines	
 	@python_output = format_output(@python_output);
-	
+	# Print each line of the Output array
 	for $i (0..$#python_output) {
 		print "$python_output[$i]\n";
 	}
@@ -194,7 +150,6 @@ sub output_python ( $$$ ) {
 	for my $count (0..$tab_depth-1) {
 			$indentation .= "    ";
 	}
-
 	foreach my $python_line (@valid_python) {
 		# $output[last element]
 		push @{$Output}, "$indentation$python_line ";
@@ -237,6 +192,14 @@ sub debug  ( $ )  {
 	print "Debug:- $message\n" if $debug;
 }
 
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Purpose:-     Formats Array by placing individual lines into seperate array  %
+#               elements. Joins array into single string and then splits on    %
+#               new lines. Trailing newlines will also be removed.             %
+# Prototype:-   array format_output(@array)                                    %
+# Param array   @input     :- Content to format into output                    %
+# Returns                  :- array                                            %
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sub format_output ( @ ) {
 	my (@input) = @_;
 	my $string = join('', @input);
@@ -244,7 +207,15 @@ sub format_output ( @ ) {
 	return @input;
 }
 
-
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Purpose:-     Prints Input, Output and Expected Output arrays as parallel    %
+#               columns for debugging comparison.                              %
+# Prototype:-   void output_python_line($tab_depth, $python, $last_line)       %
+# Param array ref $Input   :- Reference to array for input    lines            %
+# Param array ref $Output  :- Reference to array for output   lines            %
+# Param array ref $Expected:- Reference to array for expected lines            %
+# Returns                  :- void                                             %
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sub array_compare ( $$$ ) {
 	my ($Input, $Output, $Expected) = @_;
 	print "\n\n############## Input ############################################# Output #################################################### Expected ############################\n\n" if $debug;
@@ -260,6 +231,12 @@ sub array_compare ( $$$ ) {
 	print "############## Input ############################################# Output #################################################### Expected ############################\n" if $debug;
 }
 
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Purpose:-     Returns name of associated python file version of a perl file. %
+# Prototype:-   string python_file($file)                                      %
+# Param string  $file      :- Perl Filename to identify python version         %
+# Returns                  :- string                                           %
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sub python_file ( $ ) {
 	my ($file) = @_;
 	$file =~ s/l$/y/;
@@ -275,7 +252,7 @@ sub python_file ( $ ) {
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Purpose:-       Recursively converts perl code to python by evaulating a line%
 #                 at a time and various syntax cases.                          %
-# Prototype:-     int  debug($tab_depth, $line_num, $Input)                    %
+# Prototype:-     int convert_to_python($tab_depth, $line_num, $Input, $Output)%
 # Param int       $tab_depth :- Indentation level to prepend to python output  %
 # Param int       $line_num  :- Current line number of input array             %
 # Param array ref $Input     :- Reference to array of input lines              %
@@ -341,9 +318,7 @@ sub convert_to_python ( $$$$ ) {
 					if ($first_line) {
 						my @libraries = import_libraries($Input);
 						output_python($tab_depth, "import ", $Output) if @libraries > 0;
-						foreach my $lib (@libraries) {
-							output_python_line($tab_depth, $lib, $last_line, $Output);
-						}
+						output_python_line($tab_depth, join(', ', @libraries), $last_line, $Output);
 					}
 				} elsif (is_var_declaration_line($single_line)) { 
 					# #######################################
@@ -458,11 +433,13 @@ sub convert_to_python ( $$$$ ) {
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Purpose:-       Recursively converts perl if statement code to python by     %
-#                 evaulating a line at a time and various syntax cases.        %                    %
-# Prototype:-     int  debug($tab_depth, $line_num, $Input)                    %
+#                 evaulating a line at a time and various syntax cases.        % 
+# Prototype:-                                                                  %                   %
+#   int convert_if_statement_to_python($tab_depth, $line_num, $Input, $Output) %
 # Param int       $tab_depth :- Indentation level to prepend to python output  %
 # Param int       $line_num  :- Current line number of input array             %
 # Param array ref $Input     :- Reference to array of input lines              %
+# Param array ref $Output    :- Reference to array for output lines            %
 # Returns                    :- int Number of last line converted              %
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sub convert_if_statement_to_python ( $$$$ ) {
@@ -541,11 +518,13 @@ sub convert_if_statement_to_python ( $$$$ ) {
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Purpose:-       Recursively converts perl for statement code to python by    %
-#                 evaulating a line at a time and various syntax cases.        %                    %
-# Prototype:-     int  debug($tab_depth, $line_num, $Input)                    %
+#                 evaulating a line at a time and various syntax cases.        % 
+# Prototype:-                                                                  %
+#   int convert_for_statement_to_python($tab_depth, $line_num, $Input, $Output)%
 # Param int       $tab_depth :- Indentation level to prepend to python output  %
 # Param int       $line_num  :- Current line number of input array             %
 # Param array ref $Input     :- Reference to array of input lines              %
+# Param array ref $Output    :- Reference to array for output lines            %
 # Returns                    :- int Number of last line converted              %
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sub convert_for_statement_to_python ( $$$$ ) {
@@ -675,435 +654,5 @@ sub import_libraries ( $ ) {
 	push @libraries, "re" if has_regex($file);
 	return @libraries;
 }
-
-
-# #############################################################################################
-# #############################################################################################
-# #############################################################################################
-# ##############################         Regex Functions          #############################
-# #############################################################################################
-# #############################################################################################
-# #############################################################################################
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# Purpose:-     Returns result of regex match on line parsed                   %
-# Prototype:-   void match_description($line)                                  %
-# Param string  $line      :- Content to compare to match on                   %
-# Returns                  :- boolean                                          %
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-# ##########################################
-# ########## Has Regex Functions ###########
-# ##########################################
-
-sub has_opening_brace  ( $ )  {
-	my ($line) = @_;
-	return $line =~ /\{/;
-}
-
-sub has_strictly_closing_brace  ( $ )  {
-	my ($line) = @_;
-	return $line =~ /^[^\{]*\}/;
-}
-sub has_strictly_opening_brace  ( $ )  {
-	my ($line) = @_;
-	return $line =~ /^[^\}\{]*\{[^\{\}]*$/;
-}
-
-sub has_both_braces  ( $ )  {
-	my ($line) = @_;
-	return $line =~ /^[^\{\}]*[\{\}][^\}\{]*[\}\{][^\{\}]*$/;	
-}
-
-sub has_closing_then_opening_braces  ( $ )  {
-	my ($line) = @_;
-	return $line =~ /^[^\}]*\}[^\{]*\{[^\{\}]*$/;
-}
-
-sub has_pre_inc ( $ ) {
-	my ($line) = @_;
-	return $line =~ /\+\+\$?\w/;
-}
-
-sub has_pre_dec ( $ ) {
-	my ($line) = @_;
-	return $line =~ /\-\-\$?\w/;
-}
-
-sub has_post_inc ( $ ) {
-	my ($line) = @_;
-	return $line =~ /\w\+\+/;
-}
-
-sub has_post_dec ( $ ) {
-	my ($line) = @_;
-	return $line =~ /\w\-\-/;
-}
-
-sub has_prepost_incdec ( $ ) {
-	my ($line) = @_;
-	# post dec or post inc
-	# .-- || .++ 
-	# pre dec or pre inc
-	# --. || ++.
-	return (has_pre_inc($line) || has_pre_dec($line) || has_post_inc($line) || has_post_dec($line));
-}
-
-sub has_print_call ( $ ) {
-	my ($line) = @_;
-	return $line =~ /(\s|^)print\s*/;
-}
-
-sub has_regex  ( $ ) {
-	my ($line) = @_;
-	return $line =~ /\=\~/;
-}
-
-sub has_system_access  ( $ ) {
-	my ($line) = @_;
-	return $line =~ /((open)|(close)|(\<\>)|(STDIN)|(STDOUT)|(STDERR)|(\&1)|(\&2)|(ARGV))/;
-}
-
-sub has_explicit_new_line  ( $ ) {
-	my ($line) = @_;
-	return $line =~ /\".*?\\n\.*?"/;
-}
-
-# ##########################################
-# ########## Is Regex Functions ############
-# ##########################################
-
-sub is_empty_line ( $ ) {
-	my ($line) = @_;
-	return $line =~ /^\s*$/;
-}
-
-sub is_var_declaration_line ( $ ) {
-	my ($line) = @_;
-	return $line =~ /^\s*[\$\@\%]\w+.*?\s*\=\s*[\"\']?.*[\"\']?\s*$/;	
-} 
-
-sub is_closing_brace_line ( $ ) {
-	my ($line) = @_;
-	return $line =~ /^\s*\}\s*$/;
-}
-
-sub is_opening_brace_line ( $ )  {
-	my ($line) = @_;
-	return $line =~ /^\s*\{\s*$/;
-}
-
-sub is_comment_line ( $ ) {
-	my ($line) = @_;
-	return $line =~ /^\s*\#.*$/;
-}
-
-sub is_else_line ( $ ) {
-	my ($line) = @_;
-	return $line =~ /^\s*\}?\s*els[ie]f?\s*\{?\s*$/;
-}
-
-sub is_print_line ( $ ) {
-	my ($line) = @_;
-	return $line =~ /^\s*print\s*\(?\s*(((\"[^\"]+\"\s*)|(\s*\$\w+\s*))\s*[\.\,\+\*\-\/]\s*)*((\"[^\"]+\"\s*)|(\s*\$\w+\s*))\)?\s*$/;
-}
-
-sub is_standard_if ( $ ) {
-	my ($line) = @_;
-	return $line =~ /^\s*if\s*\(?.*\)?\s*$/;
-}
-
-sub is_reverse_order_if_line ( $ ) {
-	my ($line) = @_;
-	return $line =~ /\s*?.+?\sif\s*\(?.*\)?\s*$/;
-}
-
-sub is_for_statement ( $ ) {
-	my ($line) = @_;
-	return $line =~ /\s*for(each)?.*\s*$/;
-}
-
-sub is_standard_for_statement_line ( $ ) {
-	my ($line) = @_;
-	return $line =~ /\s*for\s*\(\s*.*?;.*?;.*?\)\s*\{?\s*$/;
-}
-
-sub is_foreach_statement_line ( $ ) {
-	my ($line) = @_;
-	return $line =~ /\s*foreach\s*(.*?)\s*(\(.*?\))\s*\{?\s*$/;
-}
-
-sub is_for_var_in_set ( $ ) {
-	my ($line) = @_;
-	return $line =~ /\s*for\s*(.*?)\s*in\s*(\(?.*?\)?)\s*\{?\s*$/;
-}
-
-sub is_prepost_incdec_line ( $ ) {
-	my ($line) = @_;
-	return $line =~ /^\s*((((\-\-)|(\+\+))\$\w+)|(\$\w+((\-\-)|(\+\+))))\s*$/;
-}
-
-sub is_while_statement_line ( $ ) {
-	my ($line) = @_;
-	return $line =~ /^\s*while\(?.*?\)\s*\{?\s*$/;
-}
-
-sub is_single_word_line ( $ ) {
-	my ($line) = @_;
-	return $line =~ /^\S+$/;
-}
-
-sub is_function_declaration ( $ ) {
-	my ($line) = @_;
-	return $line =~ /^\s*sub\s+(\w+)\s*(\(?.*?\)?)?\s*[\;\{]?\s*$/;
-}
-
-sub is_function_arg_dec_line ( $ ) {
-	my ($line) = @_;
-	return $line =~ /^\s*my.*?\(.*\$.+?\)+\s*=.*?\@_.*\s*$/;	
-}
-
-sub is_single_condition ( $ ) {
-	my ($line) = @_;
-	return $line !~ /((\&\&)|(\|\|))/;		
-}
-
-# ##########################################
-# ######## Strip Regex Functions ###########
-# ##########################################
-sub strip_outermost_parentheses ( $ )  {
-	my ($line) = @_;
-	my $no_parentheses_line = $line;
-	$no_parentheses_line =~ s/^([^\(]*)\(/$1/;
-	$no_parentheses_line =~ s/^(.*)\)([^\)]*$)/$1$2/;
-	return strip_outer_spaces($no_parentheses_line);
-}
-
-sub strip_outermost_braces ( $ ) {
-	my ($line) = @_;
-	my $no_braces_line = $line;
-	# Also replaces first occuring brace with a :
-	$no_braces_line =~ s/^([^\{]*)\{/$1:/;
-	$no_braces_line =~ s/^(.*)\}([^\}]*$)/$1$2/;
-	return strip_outer_spaces($no_braces_line);
-}
-
-sub strip_dollar_signs ( $ ) {
-	my ($line) = @_;
-	my $var_line = $line;
-	$var_line =~ s/\$(\w+)/$1/g;
-	return strip_outer_spaces($var_line);	
-}
-
-sub strip_new_line ( $ ) {
-	my ($line) = @_;
-	$line =~ s/(".*)\\n(.*\".*)$/$1$2/;
-	return strip_outer_spaces($line);	
-}
-
-sub strip_at_signs ( $ ) {
-	my ($line) = @_;
-	$line =~ s/\@//g;
-	return strip_outer_spaces($line);	
-}
-
-sub strip_logic_operators ( $ ) {
-	my ($line) = @_;
-	$line =~ s/\&\&/and/g;
-	$line =~ s/\|\|/or/g;
-	$line =~ s/\!/not/g if $line !~ /\#\!/;
-	return strip_outer_spaces($line);	
-}
-
-sub strip_input_methods ( $ ) {
-	my ($line) = @_;
-	$line =~ s/\<STDIN\>/sys.stdin.readline()/g;
-	$line =~ s/\<STDOUT\>/sys.stdout.write()/g;
-	$line =~ s/\<STDERR\>/sys.stderr.write()/g;
-	$line =~ s/\&1/sys.stdout.write()/g;
-	$line =~ s/\$\#ARGV/len(sys.argv)/g;
-	$line =~ s/\&2/sys.stderr.write()/g;
-	$line =~ s/len\(\@ARGV\)/len(sys.argv)/g;
-	$line =~ s/\$ARGV\[(.*)\]/sys.argv[$1+1]/g;
-	$line =~ s/\@ARGV/sys.argv[1:]/g;
-	$line =~ s/ARGV/sys.argv/g;
-	return strip_outer_spaces($line);	
-}
-
-sub strip_comparators ( $ ) {
-	my ($line) = @_;
-	$line =~ s/\seq\s/ == /g;
-	return strip_outer_spaces($line);	
-}
-
-sub strip_invalid_python ( $ ) {
-	my ($line) = @_;
-	#debug("Given Output:- $line");
-	$line = strip_semi_colon($line);
-	$line = strip_logic_operators($line);
-	$line = strip_comparators($line);
-	$line = strip_input_methods($line);
-	$line = strip_dollar_signs($line);
-	$line = strip_at_signs($line);
-	#print "should be no dol signs here :- $line\n";
-
-	my @valid_python = convert_prepost_incdec($line);
-	#debug("Produced Output:- @valid_python");
-	return @valid_python;
-}
-
-sub strip_semi_colon ( $ ) {
-	my ($line) = @_;
-	$line =~ s/\;//g;
-	return strip_outer_spaces($line);	
-}
-
-sub strip_prepost_incdec ( $ ) {
-	my ($line) = @_;
-	$line =~ s/((\-\-)|(\+\+))//g;
-	return strip_outer_spaces($line);	
-}
-
-sub strip_outer_spaces ( $ ) {
-	my ($line) = @_;
-	$line =~ s/^\s*//;
-	$line =~ s/\s*$//;
-	return $line;	
-}
-
-sub strip_condition_padding ( $ ) {
-	my ($line) = @_;
-	$line = strip_semi_colon($line);
-	$line = strip_outer_spaces($line);
-	$line = strip_outermost_braces($line);
-	$line = strip_outermost_parentheses($line);
-	$line = strip_outer_spaces($line);
-	$line = "(".$line.")" if !is_single_condition($line);
-	return $line;
-}
-
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# Purpose:-     Returns capture part of regex match on line parsed             %
-# Prototype:-   void match_description($line)                                  %
-# Param string  $line      :- Content to compare to match on                   %
-# Returns                  :- string                                           %
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# ##########################################
-# ########## Get Regex Functions ###########
-# ##########################################
-sub get_print ( $ ) {
-	my ($line) = @_;
-	return strip_outer_spaces($1) if $line =~ /^\s*(print\s*\(?\s*(((\"[^\"]+\"\s*)|(\s*\$\w+\s*))[\.\,\+\-\/\*])*((\"[^\"]+\"\s*)|(\s*\$\w+\s*))\)?)/;
-	return "";
-}
-
-sub get_for_statement_init ( $ ) {
-	my ($line) = @_;
-	return strip_outer_spaces($1) if $line =~ /\s*for\s*\(\s*(.*?);.*?;.*?\)\s*\{?\s*$/;
-	return "";
-}
-
-sub get_for_statement_condition ( $ ) {
-	my ($line) = @_;
-	return strip_outer_spaces($1) if $line =~ /\s*for\s*\(\s*.*?;(.*?);.*?\)\s*\{?\s*$/;
-	return "";
-}
-
-sub get_for_statement_postexec ( $ ) {
-	my ($line) = @_;
-	my @exec_lines = split /,/, $1 if $line =~ /\s*for\s*\(\s*.*?;.*?;\s*(.*?)\)\s*\{?\s*$/;
-	return @exec_lines;
-}
-
-sub get_post_var( $ ) {
-	my ($line) = @_;
-	return strip_outer_spaces($1) if $line =~ /(\$?[A-Za-z_]+)((\-\-)|(\+\+))/;
-	return "";
-}
-
-sub get_pre_var( $ ) {
-	my ($line) = @_;
-	return strip_outer_spaces($4) if $line =~ /((\-\-)|(\+\+))(\$?[A-Za-z_]+)/;
-	return "";
-}
-
-sub get_incdec_op ( $ ) {
-	my ($line) = @_;
-	return "+" if (has_post_inc($line) || has_pre_inc($line));
-	return "-" if (has_post_dec($line) || has_pre_dec($line));
-}
-
-sub get_if_condition ( $ ) {
-	my ($line) = @_;
-	return strip_outer_spaces($1) if $line =~ /^\s*if\s*(\([^\)]+\))/;
-	return "";
-}
-
-sub get_if_routine ( $ ) {
-	my ($line) = @_;
-	return strip_outer_spaces($2) if $line =~ /^\s*if\s*(\([^\)]+\))\s*\{(.*)\}/;
-	return "";
-}
-
-sub get_reverse_if_condition ( $ ) {
-	my ($line) = @_;
-	return strip_condition_padding($2) if $line =~ /\s*(.+)\s+if\s*(\(?.+\)?)\s*\;?\s*$/;
-	return "";
-}
-
-sub get_reverse_if_routine ( $ ) {
-	my ($line) = @_;
-	return strip_outer_spaces($1) if $line =~ /\s*(.+)\s+if\s*(\(?.+\)?)\s*\;?\s*$/;
-	return "";
-}
-
-sub get_foreach_var ( $ ) {
-	my ($line) = @_;
-	return strip_outer_spaces($1) if $line =~ /\s*foreach\s*(.*?)\s*(\(.*?\))\s*\{?\s*$/;
-	return "";
-}
-
-sub get_foreach_set ( $ ) {
-	my ($line) = @_;
-	return strip_outer_spaces($2) if $line =~ /\s*foreach\s*(.*?)\s*(\(.*?\))\s*\{?\s*$/;
-	return "";
-}
-
-sub get_while_condition ( $ ) {
-	my ($line) = @_;
-	return strip_outer_spaces($1) if $line =~ /^\s*while\s*\(?(.*?)\)\s*\{?\s*$/;
-	return "";
-}
-
-sub get_function_prototype_args ( $ ) {
-	my ($line) = @_;
-	return "" if !($line =~ /^\s*sub\s+(\w+)\s*(\(.*?\))\s*\{?\s*$/);
-	my $args = $2;
-	my @arguments = ();
-	my $arg_num = 0;
-	while($args =~ /[\$\@\%]/g) {
-		push (@arguments, "arg".$arg_num++);
-	}
-	return strip_outer_spaces("(".join(', ', @arguments).")");
-}
-
-sub get_function_defined_args ( $ ) {
-	my ($line) = @_;
-	return strip_outer_spaces($1) if $line =~ /^\s*my.*?(\(.*\$.+?\))+\s*=.*?\@_.*\s*$/;
-	return "";
-}
-
-sub get_function_name ( $ ) {
-	my ($line) = @_;
-	return strip_outer_spaces($1) if $line =~ /^\s*sub\s+(\w+)\s*(\(?.*?\)?)\s*\{?\s*$/;
-	return "";
-}
-
-
-
-
-
-
-
 
 

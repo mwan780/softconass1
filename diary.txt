@@ -50,3 +50,5 @@
 "Start", "2013-09-24", "14:18:29", "Coding Tests", "Updated Unit Tests and provided more test cases. Identified some problems in code which were fixed"
 "Update", "2013-09-24", "15:49:22", "Coding", "Changed Function Args to check ck if next line has variable declarations"
 "Update", "2013-09-24", "20:27:27", "Coding", "Changed Output to array instead of stdout for dynamic output"
+"Start", "2013-09-25", "08:24:34", "Commenting", "Updated Function Details and Descriptions"
+"Update", "2013-09-25", "08:57:54", "Code Formating", "Split Regex Functions into Seperate File for fomatting purposes"

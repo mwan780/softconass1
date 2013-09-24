@@ -16,8 +16,8 @@ die() {
 		exit 1
 	fi
 }
-cd $1
-files="`ls *.pl`"
+
+files="`ls $1/*.pl`"
 echo "Testing .... $files"
 for answer in $files
 do 	
@@ -25,14 +25,14 @@ do
 	echo "######################################"
 	echo "Converting perl-to-python for $answer"
 	echo "######################################"
-	../perl2python.pl $answer > $tmp_file
+	./perl2python.pl $answer > $tmp_file
 	result=$?
 	if [ $result -ne 0 ]; then 
 		echo result was $result
 		echo "$0 : Error - perl2python output to temp file failed" >&2
 		break;
 	fi 
-	diff -yw --suppress-common-line $curr_file_name.py $tmp_file
+	diff -y $curr_file_name.py $tmp_file
 	result=$?
 	echo
 	echo "Test:- $curr_file_name:-"
@@ -78,7 +78,8 @@ do
     	fi
     fi
     echo
-    echo
+    echo "Press any key to Continue"
+    cat | echo # Press any key to continue
 done
 
 

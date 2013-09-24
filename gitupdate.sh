@@ -6,6 +6,7 @@
 # *********************************
 
 cd /home/steven/Documents/softconass1
+rm -fv *.tmp
 cd test 
 rm -fv *.tmp
 cd ..
