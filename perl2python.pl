@@ -23,7 +23,7 @@
 # #############################################################################################
 
 sub convert_prepost_incdec ( $ );
-sub convert_to_python ( $$$ );
+sub convert_to_python ( $$$$ );
 sub debug  ( $ );
 sub get_for_statement_condition ( $ );
 sub get_for_statement_init ( $ );
@@ -53,8 +53,8 @@ sub is_print_line ( $ );
 sub is_reverse_order_if_line ( $ );
 sub is_standard_for_statement_line ( $ );
 sub is_var_declaration_line ( $ );
-sub output_python ( $$ );
-sub output_python_line ( $$$ );
+sub output_python ( $$$ );
+sub output_python_line ( $$$$ );
 sub strip_dollar_signs ( $ );
 sub strip_invalid_python ( $ );
 sub strip_new_line ( $ );
@@ -103,14 +103,22 @@ foreach my $file (@ARGV) {
 	debug("Reading from File");
 	@perl_input = <PERL>;
 	$Perl_ref = \@perl_input;
-	convert_to_python(0, 0, $Perl_ref);
+	@python_output = ();
+	$Python_ref = \@python_output;
+	convert_to_python(0, 0, $Perl_ref, $Python_ref);
+	$\ = "\n";
+	print @python_output;
 }
 # Process Standard Input if no files were parsed
 if ( !($#ARGV >= 0) ) {
 	debug("Reading from standard input");
 	@std_input = <STDIN>;
 	$Stdin_ref = \@std_input;
-	convert_to_python(0, 0, $Stdin_ref);
+	@python_output = ();
+	$Python_ref = \@python_output;
+	convert_to_python(0, 0, $Stdin_ref, $Python_ref);
+	$\ = "\n";
+	print @python_output;
 }
 
 
@@ -127,17 +135,19 @@ if ( !($#ARGV >= 0) ) {
 # Prototype:-  void output_python($tab_depth, $python)                         %
 # Param int    $tab_depth :- Level of indentation to prepend to output         %
 # Param string $python    :- Content to output                                 %
+# Param array ref $Output  :- Reference to array for output lines              %
 # Returns                 :- void                                              %
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-sub output_python ( $$ ) {
-	my ($tab_depth, $python) = @_;
+sub output_python ( $$$ ) {
+	my ($tab_depth, $python, $Output) = @_;
 	my @valid_python = strip_invalid_python($python);
+	my $indentation = "";
+	for my $count (0..$tab_depth-1) {
+			$indentation .= "   ";
+	}
 	foreach my $python_line (@valid_python) {
-		#print "Output:- " if $debug;
-		for my $count (0..$tab_depth-1) {
-			print "   ";
-		}
-		print "$python_line ";
+		# $output[last element]
+		${$Output}[$#{$Output}] .= "$indentation.$python_line ";
 	}
 }
 
@@ -148,18 +158,20 @@ sub output_python ( $$ ) {
 # Param int     $tab_depth :- Level of indentation to prepend to output        %
 # Param string  $python    :- Content to output                                %
 # Param boolean $last_line :- Determines if new line char should be appended   %
+# Param array ref $Output  :- Reference to array for output lines              %
 # Returns                  :- void                                             %
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-sub output_python_line ( $$$ ) {
-	my ($tab_depth, $python, $last_line) = @_;
+sub output_python_line ( $$$$ ) {
+	my ($tab_depth, $python, $last_line, $Output) = @_;
 	my @valid_python = strip_invalid_python($python);
+	my $indentation = "";
+	for my $count (0..$tab_depth-1) {
+		$indentation .= "   ";
+	}
 	foreach my $python_line (@valid_python) {
 		print "Output:- " if $debug;
-		for my $count (0..$tab_depth-1) {
-			print "   ";
-		}
-		print "$python_line";
-		print "\n" if !$last_line;
+		push @{$Output}, "$indentation.$python_line";
+		push @{$Output}, "\n" if !$last_line;
 	}
 }
 
@@ -189,11 +201,12 @@ sub debug  ( $ )  {
 # Param int       $tab_depth :- Indentation level to prepend to python output  %
 # Param int       $line_num  :- Current line number of input array             %
 # Param array ref $Input     :- Reference to array of input lines              %
+# Param array ref $Output    :- Reference to array for output lines            %
 # Returns                    :- int Number of last line converted              %
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Return:- last line number read from
-sub convert_to_python ( $$$ ) {
-	my ($tab_depth, $line_num, $Input) = @_;
+sub convert_to_python ( $$$$ ) {
+	my ($tab_depth, $line_num, $Input, $Output) = @_;
 	debug("Tab Depth = $tab_depth and input line number = ".$line_num."/".($#{$Input}+1));
 	die "Line Number $line_num not in file\n" if ($line_num < 0 || $line_num > $#{$Input});
 	my $curr_line = $line_num;
