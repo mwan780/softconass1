@@ -55,14 +55,26 @@ sub run_is_tests {
 
 sub run_has_tests {
 	is(has_both_braces('} else { '),                  1,          'Has Both Braces');
+	is(has_both_braces('for (1) { $i++ }; '),         1,          'Has Both Braces');
+	is(has_both_braces('} elsif ($i == 1) { '),       1,          'Has Both Braces');
 	is(has_closing_then_opening_braces('} else {'),   1,          'Has Closing then Opening Brace');
+	is(has_closing_then_opening_braces('} elsif ($1) {'),1,       'Has Closing then Opening Brace');
 	is(has_explicit_new_line('"$var here \n"'),       1,          'Has Explicit New Line');
+	is(has_explicit_new_line('print "$var here \n"'), 1,          'Has Explicit New Line');
 	is(has_opening_brace('foreach $i (@array) { '),   1,          'Has Opening Brace');
+	is(has_opening_brace('for $i (1..10) { '),        1,          'Has Opening Brace');
 	is(has_post_dec('$i--'),                          1,          'Has Post Dec');
+	is(has_post_dec('@array[$i--]'),                  1,          'Has Post Dec');
 	is(has_post_inc('$i++'),                          1,          'Has Post Inc');
+	is(has_post_inc('@array[$i++]'),                  1,          'Has Post Inc');
 	is(has_pre_dec('--$i'),                           1,          'Has Pre Dec');
+	is(has_pre_dec('@array[--$i]'),                   1,          'Has Pre Dec');
 	is(has_pre_inc('++$i'),                           1,          'Has Pre Inc');
+	is(has_pre_inc('@array[++$i]'),                   1,          'Has Pre Inc');
 	is(has_prepost_incdec('$array[$i++] = 1;'),       1,          'Has PrePost IndDec');
+	is(has_prepost_incdec('$array[$i--] = 1;'),       1,          'Has PrePost IndDec');
+	is(has_prepost_incdec('$array[--$i] = 1;'),       1,          'Has PrePost IndDec');
+	is(has_prepost_incdec('$array[++$i] = 1;'),       1,          'Has PrePost IndDec');
 	is(has_print_call('print "me".$var."\n" if 1;'),  1,          'Has Print Call');
 	is(has_regex('$line =~ s/h/g/gi'),                1,          'Has Regex');
 	is(has_strictly_closing_brace('}'),               1,          'Has Strictly Closing Brace');
