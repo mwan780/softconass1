@@ -52,3 +52,6 @@
 "Update", "2013-09-24", "20:27:27", "Coding", "Changed Output to array instead of stdout for dynamic output"
 "Start", "2013-09-25", "08:24:34", "Commenting", "Updated Function Details and Descriptions"
 "Update", "2013-09-25", "08:57:54", "Code Formating", "Split Regex Functions into Seperate File for fomatting purposes"
+"Update", "2013-09-25", "09:35:24", "Coding", "Created output comment line which does not check for invalid python"
+"Update", "2013-09-25", "11:30:39", "Coding", "Created strip quoted expressions function to remove false positive and not consider quoted or regex statements when determining the nature of a line"
+"Update", "2013-09-25", "14:56:00", "Coding", "Implemented library function conversion for split, join, chomp and started regex."

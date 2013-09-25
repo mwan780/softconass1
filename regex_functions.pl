@@ -77,7 +77,24 @@ sub get_function_prototype_args ( $ );
 sub get_function_defined_args ( $ );
 sub get_function_name ( $ );
 
-
+%keywords = (
+	'last'  => 'break',
+	'next'  => 'continue',
+	'=~ s/' => 're.sub',
+	'=~ /'  => 're.match',
+	'sub'   => 'def',
+);
+# 0 = undefined
+%lib_function_conversion_regex = (
+	'print' => '//',
+	'split' => 's/split\s*\(\s*\/?\s*(.+)\/?,\s*([^\)]+)\)?/$2.split($1)/g',
+	'join'  => 's/join\s*\(\s*\/?\s*(.+)\/?,\s*([^\)]+)\)?/$1.join($2)/g',
+	'chomp' => 's/chomp\s*\(?\s*(\S+)\s*/$1.rstrip(\'\\\n\')/g',
+	'//'    => 's/(\S+)\s*=~\s*\/(.*?)\//re.match(r\'$2\', $1)/g',
+	'///'   => 's/(\S+)\s*=~\s*\/(.*?)\/(.*?)\//$1 = re.sub(r\'$2\', \'$3\', $1)/g',
+	'//i'    => 's/(\S+)\s*=~\s*\/(.*?)\//re.match(r\'$2\', $1)/g',
+	'///i'   => 's/(\S+)\s*=~\s*\/(.*?)\/(.*?)\//$1 = re.sub(r\'$2\', \'$3\', $1)/g',
+);
 
 # #############################################################################################
 # #############################################################################################
@@ -94,45 +111,60 @@ sub get_function_name ( $ );
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sub has_opening_brace  ( $ )  {
 	my ($line) = @_;
+	$line = strip_quoted_expressions($line);
 	return $line =~ /\{/;
 }
 
 sub has_strictly_closing_brace  ( $ )  {
 	my ($line) = @_;
+	$line = strip_quoted_expressions($line);
 	return $line =~ /^[^\{]*\}/;
 }
 sub has_strictly_opening_brace  ( $ )  {
 	my ($line) = @_;
+	$line = strip_quoted_expressions($line);
 	return $line =~ /^[^\}\{]*\{[^\{\}]*$/;
 }
 
 sub has_both_braces  ( $ )  {
 	my ($line) = @_;
+	$line = strip_quoted_expressions($line);
 	return $line =~ /^[^\{\}]*[\{\}][^\}\{]*[\}\{][^\{\}]*$/;	
 }
 
 sub has_closing_then_opening_braces  ( $ )  {
 	my ($line) = @_;
+	$line = strip_quoted_expressions($line);
 	return $line =~ /^[^\}]*\}[^\{]*\{[^\{\}]*$/;
+}
+
+sub has_opening_then_closing_braces  ( $ )  {
+	my ($line) = @_;
+	$line = strip_quoted_expressions($line);
+	return $line =~ /^[^\{]*\{[^\}]*\}[^\{\}]*$/;
 }
 
 sub has_pre_inc ( $ ) {
 	my ($line) = @_;
+	$line = strip_quoted_expressions($line);
 	return $line =~ /\+\+\$?\w/;
 }
 
 sub has_pre_dec ( $ ) {
 	my ($line) = @_;
+	$line = strip_quoted_expressions($line);
 	return $line =~ /\-\-\$?\w/;
 }
 
 sub has_post_inc ( $ ) {
 	my ($line) = @_;
+	$line = strip_quoted_expressions($line);
 	return $line =~ /\w\+\+/;
 }
 
 sub has_post_dec ( $ ) {
 	my ($line) = @_;
+	$line = strip_quoted_expressions($line);
 	return $line =~ /\w\-\-/;
 }
 
@@ -147,22 +179,34 @@ sub has_prepost_incdec ( $ ) {
 
 sub has_print_call ( $ ) {
 	my ($line) = @_;
+	$line = strip_quoted_expressions($line);
 	return $line =~ /(\s|^)print\s*/;
 }
 
 sub has_regex  ( $ ) {
 	my ($line) = @_;
+	$line = strip_quoted_expressions($line);
 	return $line =~ /\=\~/;
 }
 
 sub has_system_access  ( $ ) {
 	my ($line) = @_;
+	$line = strip_quoted_expressions($line);
 	return $line =~ /((open)|(close)|(\<\>)|(STDIN)|(STDOUT)|(STDERR)|(\&1)|(\&2)|(ARGV))/;
 }
 
 sub has_explicit_new_line  ( $ ) {
 	my ($line) = @_;
 	return $line =~ /\".*?\\n\.*?"/;
+}
+
+sub has_lib_function_call ( $ ) {
+	my ($line) = @_;
+	$line = strip_quoted_expressions($line);
+	foreach $word (split(/((\()|( ))/, $line)) {
+		return 1 if defined $lib_function_conversion_regex{$word};
+	}
+	return '';
 }
 
 # #############################################################################################
@@ -190,11 +234,13 @@ sub is_var_declaration_line ( $ ) {
 
 sub is_closing_brace_line ( $ ) {
 	my ($line) = @_;
+	$line = strip_quoted_expressions($line);
 	return $line =~ /^\s*\}\s*$/;
 }
 
 sub is_opening_brace_line ( $ )  {
 	my ($line) = @_;
+	$line = strip_quoted_expressions($line);
 	return $line =~ /^\s*\{\s*$/;
 }
 
@@ -205,41 +251,61 @@ sub is_comment_line ( $ ) {
 
 sub is_else_line ( $ ) {
 	my ($line) = @_;
-	return $line =~ /^\s*\}?\s*els[ie]f?\s*\{?\s*$/;
+	$line = strip_quoted_expressions($line);
+	return $line =~ /^\s*\}?\s*else\s*\{?\s*$/;
+}
+
+sub is_elsif_line ( $ ) {
+	my ($line) = @_;
+	$line = strip_quoted_expressions($line);
+	return $line =~ /^\s*\}?\s*elsif\s*\(.+\)\s*\{?\s*$/;
 }
 
 sub is_print_line ( $ ) {
 	my ($line) = @_;
+	#$line = strip_quoted_expressions($line);
 	return $line =~ /^\s*print\s*\(?\s*(((\"[^\"]+\"\s*)|(\s*\$\w+\s*))\s*[\.\,\+\*\-\/]\s*)*((\"[^\"]+\"\s*)|(\s*\$\w+\s*))\)?\s*$/;
+}
+
+sub is_if_line ( $ ) {
+	my ($line) = @_;
+	$line = strip_quoted_expressions($line);
+	return (is_standard_if($line) || is_reverse_order_if_line($line) || is_else_line($line) || is_elsif_line($line));
 }
 
 sub is_standard_if ( $ ) {
 	my ($line) = @_;
+	$line = strip_quoted_expressions($line);
 	return $line =~ /^\s*if\s*\(?.*\)?\s*$/;
 }
 
 sub is_reverse_order_if_line ( $ ) {
 	my ($line) = @_;
+	$line = strip_quoted_expressions($line);
 	return $line =~ /\s*?.+?\sif\s*\(?.*\)?\s*$/;
 }
 
 sub is_for_statement ( $ ) {
 	my ($line) = @_;
-	return $line =~ /\s*for(each)?.*\s*$/;
+	$line = strip_quoted_expressions($line);
+	return $line =~ /^\s*for(each)?.*\s*$/;
 }
 
 sub is_standard_for_statement_line ( $ ) {
 	my ($line) = @_;
+	$line = strip_quoted_expressions($line);
 	return $line =~ /\s*for\s*\(\s*.*?;.*?;.*?\)\s*\{?\s*$/;
 }
 
 sub is_foreach_statement_line ( $ ) {
 	my ($line) = @_;
+	$line = strip_quoted_expressions($line);
 	return $line =~ /\s*foreach\s*(.*?)\s*(\(.*?\))\s*\{?\s*$/;
 }
 
 sub is_for_var_in_set ( $ ) {
 	my ($line) = @_;
+	$line = strip_quoted_expressions($line);
 	return $line =~ /\s*for\s*(.*?)\s*in\s*(\(?.*?\)?)\s*\{?\s*$/;
 }
 
@@ -250,6 +316,7 @@ sub is_prepost_incdec_line ( $ ) {
 
 sub is_while_statement_line ( $ ) {
 	my ($line) = @_;
+	$line = strip_quoted_expressions($line);
 	return $line =~ /^\s*while\(?.*?\)\s*\{?\s*$/;
 }
 
@@ -260,6 +327,7 @@ sub is_single_word_line ( $ ) {
 
 sub is_function_declaration ( $ ) {
 	my ($line) = @_;
+	$line = strip_quoted_expressions($line);
 	return $line =~ /^\s*sub\s+(\w+)\s*(\(?.*?\)?)?\s*[\;\{]?\s*$/;
 }
 
@@ -325,9 +393,9 @@ sub strip_at_signs ( $ ) {
 
 sub strip_logic_operators ( $ ) {
 	my ($line) = @_;
-	$line =~ s/\&\&/and/g;
-	$line =~ s/\|\|/or/g;
-	$line =~ s/\!/not/g if $line !~ /\#\!/;
+	$line =~ s/\&\&/ and /g;
+	$line =~ s/\|\|/ or /g;
+	$line =~ s/\!/ not /g if $line !~ /\#\!/;
 	return strip_outer_spaces($line);	
 }
 
@@ -348,7 +416,8 @@ sub strip_input_methods ( $ ) {
 
 sub strip_comparators ( $ ) {
 	my ($line) = @_;
-	$line =~ s/\seq\s/ == /g;
+	$line =~ s/\s-eq\s/ == /g;
+	$line =~ s/\s-ne\s/ != /g;
 	return strip_outer_spaces($line);	
 }
 
@@ -359,6 +428,7 @@ sub strip_invalid_python ( $ ) {
 	$line = strip_logic_operators($line);
 	$line = strip_comparators($line);
 	$line = strip_input_methods($line);
+	$line = convert_lib_functions($line);
 	$line = strip_dollar_signs($line);
 	$line = strip_at_signs($line);
 	#print "should be no dol signs here :- $line\n";
@@ -398,6 +468,23 @@ sub strip_condition_padding ( $ ) {
 	return $line;
 }
 
+sub strip_regex_expressions ( $ ) {
+	my ($line) = @_;
+	$line =~ s/([^\/]*)s\/[^\/]*\/[^\/]*\/g?(.*)$/$1\/\/\/$2/g;
+	while($line =~ /^((.*?\/.*?\/.*?)*[^\/]*)m?\/[^\/]+\/(.*)$/) {
+		$line =~ s/^((.*?\/.*?\/.*?)*[^\/]*)m?\/[^\/]+\/g?(.*)$/$1\/\/$3/g;
+	}
+	return $line;
+}
+
+sub strip_quoted_expressions ( $ ) {
+	my ($line) = @_;
+	$line = strip_regex_expressions($line);
+	while($line =~ /^((.*?\".*?\".*?)*[^\"]*)\"[^\"]+\"(.*)$/) {
+		$line =~ s/^((.*?\".*?\".*?)*[^\"]*)\"[^\"]+\"(.*)$/$1\"\"$3/g;
+	}
+	return $line;
+}
 
 # #############################################################################################
 # #############################################################################################
@@ -519,5 +606,15 @@ sub get_function_name ( $ ) {
 	return strip_outer_spaces($1) if $line =~ /^\s*sub\s+(\w+)\s*(\(?.*?\)?)\s*\{?\s*$/;
 	return "";
 }
+
+sub apply_regex ( $$ ) {
+	my ($regex, $string) = @_;
+	eval "\$string =~ $regex";
+	
+	return $string;
+}
+
+# Hash keywords for translation later
+
 
 1;

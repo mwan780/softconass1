@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2.7 -u
 import sys
 
 for i in range(0,len(sys.argv)):

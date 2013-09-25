@@ -1,178 +1,410 @@
-Running testall.sh
-Testing .... answer0.pl
-answer1.pl
-answer2.pl
-answer3.pl
-answer4.pl
-answer5.pl
-answer6.pl
-devowel.pl
-echo_2.pl
-echonl_0.pl
-echonl_1.pl
-five.pl
-hello_world.pl
-iota.pl
-line_count.1.pl
-prime0.pl
-size.pl
-subset1.pl
-subset2_answer0.pl
-subset2_answer1.pl
-subset2_answer2.pl
-subset2_answer3.pl
-subset2_answer4.pl
-subset3_answer5.pl
-subset3_answer6.pl
-subset3_five.pl
-subset3_iota.pl
-subset4_odd.pl
-subset4_size.pl
-test0.pl
-test1.pl
-test2.pl
-test3.pl
-test4.pl
-test5.pl
-test6.pl
-test7.pl
-test8.pl
-test9.pl
-tetrahedral.pl
-zcookie0.pl
-zodd0.pl
-######################################
-Converting perl-to-python for answer0.pl
-######################################
+1
+# *********************************
+# *********************************
+# Author:- Steven Falconieri    
+# *********************************
+# *********************************
+import sys, re
 
-Test:- answer0:-
-Test:- Direct Comparison Source Code Check......................0... Passed ............ answer0
-Test:- Compilation Test.........................................0... Passed ............ answer0
-42								42
+1
+# If the first character of a variable is capitalised, this implies that the variable is a 
+# reference to another variable does not contain any contents but a pointer to the actual data
 
-Test:- Program Output Comparison Check..........................0... Passed ............ answer0
+1
+#use strict;
 
 
-######################################
-Converting perl-to-python for answer1.pl
-######################################
 
-Test:- answer1:-
-Test:- Direct Comparison Source Code Check......................0... Passed ............ answer1
-Test:- Compilation Test.........................................0... Passed ............ answer1
-42								42
-
-Test:- Program Output Comparison Check..........................0... Passed ............ answer1
+1
+# #############################################################################################
+# #############################################################################################
+# ############################       Function Prototypes      #################################
+# #############################################################################################
+# #############################################################################################
+# #############################################################################################
 
 
-######################################
-Converting perl-to-python for answer2.pl
-######################################
-
-Test:- answer2:-
-Test:- Direct Comparison Source Code Check......................0... Passed ............ answer2
-Test:- Compilation Test.........................................0... Passed ............ answer2
-42								42
-
-Test:- Program Output Comparison Check..........................0... Passed ............ answer2
 
 
-######################################
-Converting perl-to-python for answer3.pl
-######################################
-							      <
 
-Test:- answer3:-
-Test:- Direct Comparison Source Code Check......................1... Failed ............ answer3
-Test:- Compilation Test.........................................0... Passed ............ answer3
-42								42
+1
+# #############################################################################################
+# #############################################################################################
+# ##############################            MAIN           ####################################
+# #############################################################################################
+# #############################################################################################
+# #############################################################################################
 
-Test:- Program Output Comparison Check..........................0... Passed ............ answer3
+# require 'regex_functions.pl' or die "Could not import Regex Functions\n"
 
+1
+# Must be first program argument
+if (len(sys.argv) > 0  and  sys.argv[0+1] =~ /\-d/):
+    debug = 1
+    # shift sys.argv[1:]
+    1
+    # require 'unit_tests.pl'
 
-######################################
-Converting perl-to-python for answer4.pl
-######################################
+1
+%keywords = (
+# 'last' => 'break',
+# 'next' => 'continue',
+# 'print' => 'print',
+# 'split' => '',
+# 'join' => '',
+# '=~ s/' => 're.sub',
+# '=~ /' => 're.match',
+# 'sub' => 'def',
+# )
 
-Test:- answer4:-
-Test:- Direct Comparison Source Code Check......................0... Passed ............ answer4
-Test:- Compilation Test.........................................0... Passed ............ answer4
-42								42
-
-Test:- Program Output Comparison Check..........................0... Passed ............ answer4
-
-
-######################################
-Converting perl-to-python for answer5.pl
-######################################
-
-Test:- answer5:-
-Test:- Direct Comparison Source Code Check......................0... Passed ............ answer5
-Test:- Compilation Test.........................................0... Passed ............ answer5
-42								42
-
-Test:- Program Output Comparison Check..........................0... Passed ............ answer5
-
-
-######################################
-Converting perl-to-python for answer6.pl
-######################################
-							      <
-
-Test:- answer6:-
-Test:- Direct Comparison Source Code Check......................1... Failed ............ answer6
-Test:- Compilation Test.........................................0... Passed ............ answer6
-42								42
-
-Test:- Program Output Comparison Check..........................0... Passed ............ answer6
-
-
-######################################
-Converting perl-to-python for devowel.pl
-######################################
-import fileinput, re					      |	import sys
-							      >	re
-for line in fileinput.input():				      |	while line = <>:
-    line = line.rstrip()				      |	    # chomp line
-    line = re.sub(r'[aeiou]', '', line)			      |	    line =~ s/[aeiou]//g
-
-Test:- devowel:-
-Test:- Direct Comparison Source Code Check......................1... Failed ............ devowel
-Test:- Compilation Test.........................................1... Failed ............ devowel
-
-
-######################################
-Converting perl-to-python for echo_2.pl
-######################################
-#!/usr/bin/python					      |	#!/usr/bin/python2.7 -u
-import sys						      |	# writen by andrewtcse.unsw.edu.au as a COMP2041 example
-# writen by andrewt@cse.unsw.edu.au as a COMP2041 example     <
-							      >	import sys
-print " ".join(sys.argv[1:])				      |	print join(' ', sys.argv[1:]), "\n"
-
-Test:- echo_2:-
-Test:- Direct Comparison Source Code Check......................1... Failed ............ echo_2
-Test:- Compilation Test.........................................1... Failed ............ echo_2
-
-
-######################################
-Converting perl-to-python for echonl_0.pl
-######################################
-#!/usr/bin/python					      |	#!/usr/bin/python2.7 -u
-
-Test:- echonl_0:-
-Test:- Direct Comparison Source Code Check......................1... Failed ............ echonl_0
-Test:- Compilation Test.........................................0... Passed ............ echonl_0
-
-Test:- Program Output Comparison Check..........................0... Passed ............ echonl_0
+1
+# Check if any files have been parsed as arguments
+# If so execute the conversion to each file individually
+# If not continue to Standard Input processing below
+for my file in sys.argv[1:]: 
+    # open(PERL, file) or die "0: Could not open 'file' : $ not \n"
+    # debug("Reading from File")
+    1
+    perl_input = <PERL>
+    1
+    Perl_ref = \perl_input
+    1
+    python_output = ()
+    1
+    Python_ref = \python_output
+    1
+    	# Places python into output array referenced
+    # convert_to_python(0, 0, Perl_ref, Python_ref)
+    1
+    python_output = format_output(python_output)
+    
+    1
+    # 	for i (0..$#python_output) {
+        print "python_output[i]"
+    if debug:
+        1
+        expected = <EXP> if open(EXP, python_file(file))
+        Expected_ref = \expected
+        1
+        # array_compare(Perl_ref, Python_ref, Expected_ref)
+1
+if  not (len(sys.argv) >= 0:
+    # debug("Reading from standard input")
+    1
+    std_input = sys.stdin.readline()
+    1
+    Stdin_ref = \std_input
+    1
+    python_output = ()
+    1
+    Python_ref = \python_output
+    1
+    	# Places python into output array referenced
+    # convert_to_python(0, 0, Stdin_ref, Python_ref)
+    1
+    python_output = format_output(python_output)
+    1
+    # 	for i (0..$#python_output) {
+        print "python_output[i]"
+    # array_compare(Perl_ref, Python_ref, "")
 
 
-######################################
-Converting perl-to-python for echonl_1.pl
-######################################
-#!/usr/bin/python					      |	#!/usr/bin/python2.7 -u
-        print sys.argv[i+1]				      |	    print "sys.argv[i+1]"
 
-Test:- echonl_1:-
-Test:- Direct Comparison Source Code Check......................1... Failed ............ echonl_1
-Test:- Compilation Test.........................................0... Passed ............ echonl_1
+1
+# #############################################################################################
+# #############################################################################################
+# ################################       Output Functions        ##############################
+# #############################################################################################
+# #############################################################################################
+# #############################################################################################
+
+1
+# Purpose:-    Outputs to python code to standard output                       %
+# Prototype:-  void output_python($tab_depth, $python)                         %
+# Param int    $tab_depth :- Level of indentation to prepend to output         %
+# Param string $python    :- Content to output                                 %
+# Param array ref $Output  :- Reference to array for output lines              %
+# Returns                 :- void                                              %
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def output_python (tab_depth, python, Output) :
+    # my valid_python = strip_invalid_python(python)
+    # my indentation = ""
+    # 	for my count (0..tab_depth-1) {
+        indentation .= "    "
+    for my python_line in     valid_python:     
+        1
+        # push {Output}, "indentationpython_line "
+
+1
+# Purpose:-     Outputs python code to standard output followed                %
+#               by newline character                                           %
+# Prototype:-   void output_python_line($tab_depth, $python, $last_line)       %
+# Param int     $tab_depth :- Level of indentation to prepend to output        %
+# Param string  $python    :- Content to output                                %
+# Param boolean $last_line :- Determines if new line char should be appended   %
+# Param array ref $Output  :- Reference to array for output lines              %
+# Returns                  :- void                                             %
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def output_python_line (tab_depth, python, last_line, Output) :
+    # my valid_python = strip_invalid_python(python)
+    # my indentation = ""
+    # 	for my count (0..tab_depth-1) {
+        indentation .= "    "
+    for my python_line in     valid_python:     
+        if debug: print "Output:- python_line",        
+        # push {Output}, "indentationpython_line"
+        if :
+
+1
+# Purpose:-     Outputs comment line to standard output followed               %
+#               by newline character                                           %
+# Prototype:-   void output_comment_line($tab_depth, $python, $last_line)      %
+# Param int     $tab_depth :- Level of indentation to prepend to output        %
+# Param string  $python    :- Content to output                                %
+# Param boolean $last_line :- Determines if new line char should be appended   %
+# Param array ref $Output  :- Reference to array for output lines              %
+# Returns                  :- void                                             %
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def output_comment_line (tab_depth, comment, last_line, Output) :
+    # my indentation = ""
+    # 	for my count (0..tab_depth-1) {
+        indentation .= "    "
+    # push {Output}, "indentationcomment"
+    if :
+
+1
+# Purpose:-     Outputs message with new line character to standard output if  %
+#               debugging flag (-d) has been parsed as programs first argument %
+# Prototype:-   void debug($message)                                           %
+# Param string  $message   :- Content to output                                %
+# Returns                  :- void                                             %
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def debug (message) :
+    if debug: print "Debug:- message"    
+
+1
+# Purpose:-     Formats Array by placing individual lines into seperate array  %
+#               elements. Joins array into single string and then splits on    %
+#               new lines. Trailing newlines will also be removed.             %
+# Prototype:-   array format_output(@array)                                    %
+# Param array   @input     :- Content to format into output                    %
+# Returns                  :- array                                            %
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def format_output (arg0) :
+    # my (input) = _
+    # my string = join('', input)
+    1
+    	#$string =~ s/\s{4}/\t/g;
+    	# Replace consecutive spaces with single one
+    	#$string =~ s/\s+/ /g;
+    input = split('\n', string)
+    # return input
+
+1
+# Purpose:-     Prints Input, Output and Expected Output arrays as parallel    %
+#               columns for debugging comparison.                              %
+# Prototype:-   void output_python_line($tab_depth, $python, $last_line)       %
+# Param array ref $Input   :- Reference to array for input    lines            %
+# Param array ref $Output  :- Reference to array for output   lines            %
+# Param array ref $Expected:- Reference to array for expected lines            %
+# Returns                  :- void                                             %
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def array_compare (Input, Output, Expected) :
+    if debug: print "\n\n############## Input ############################################# Output #################################################### Expected ############################\n"    
+    # 	for my i (0..$#{Output}) {
+        # my input = ${Input}[i]
+        # my output = ${Output}[i]
+        # my expected = ${Expected}[i]
+        # chomp(input)
+        # chomp(output)
+        # chomp(expected)
+        if debug: printf "%-60s %-60s %-60s\n", input, output, expected        
+    if debug: print "############## Input ############################################# Output #################################################### Expected ############################"    
+
+1
+# Purpose:-     Returns name of associated python file version of a perl file. %
+# Prototype:-   string python_file($file)                                      %
+# Param string  $file      :- Perl Filename to identify python version         %
+# Returns                  :- string                                           %
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def python_file (file) :
+    file =~ s/l$/y/
+    # return file
+1
+# #############################################################################################
+# #############################################################################################
+# #######################        Recursive Conversion Functions          #######################
+# #############################################################################################
+# #############################################################################################
+# #############################################################################################
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Purpose:-       Recursively converts perl code to python by evaulating a line%
+#                 at a time and various syntax cases.                          %
+# Prototype:-     int convert_to_python($tab_depth, $line_num, $Input, $Output)%
+# Param int       $tab_depth :- Indentation level to prepend to python output  %
+# Param int       $line_num  :- Current line number of input array             %
+# Param array ref $Input     :- Reference to array of input lines              %
+# Param array ref $Output    :- Reference to array for output lines            %
+# Returns                    :- int Number of last line converted              %
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Return:- last line number read from
+def convert_to_python (tab_depth, line_num, Input, Output) :
+    # debug("Tab Depth = tab_depth and input line number = ".line_num."/".($#{Input}+1))
+    if :
+    # my curr_line = line_num
+    curr_line = line_num
+    while curr_line <= $#:Input:
+        1
+        # my last_line = (curr_line == $#{Input})
+        # my line = "${Input}[curr_line]"
+        # debug("Current line number = curr_line")
+        # chomp line
+        if  not is_empty_line(line:
+            # debug("Ignore
+            if is_standard_for_statement_lineline: # debug("Ignore# since for statement line")            
+            # my multiple_lines = split (/
+            if  not is_standard_for_statement_lineline: # my multiple_lines = split (/# \s*/, line)            
+            if is_standard_for_statement_lineline: # push multiple_lines, line            
+            if multiple_lines > 1: # debug("Multiple ($#multiple_lines+1) Lines Detected at line curr_line")            
+            for my single_line in             multiple_lines:             
+                last_line = (curr_line == $#{Input})
+                # chomp single_line
+                1
+                				# Striping on output instead --- should be able to delete this. $single_line = strip_dollar_signs($single_line);
+                single_line = strip_outer_spaces(single_line)
+                # debug("Input:- single_line")
+                if is_closing_brace_line(single_line:
+                    1
+                    					# ###### Sole Closing Brace #############
+                    					# #######################################
+                    # debug("Line Type:- Closing Brace ")
+                    # debug("Returning after line curr_line and depth tab_depth")
+                    # return (curr_line)
+                    if :
+                    1
+                    					# ###### Sole Opening Brace #############
+                    					# #######################################
+                    					# Do Nothing as it has been implemented in if statement below
+                    # debug("Line Type:- Opening Brace ")
+                    if :
+                    1
+                    					# ############## Comments ###############
+                    					# #######################################
+                    					# Print Comments Directly Out and removing leading spaces
+                    # debug("Line Type:- Comments ")
+                    single_line = single_line =~ /(#.*)/
+                    # my first_line = (curr_line == 0)
+                    1
+                    single_line =~ s/perl \-w/python2.7 \-u/
+                    1
+                    # output_comment_line(tab_depth, single_line, last_line, Output)
+                    while is_comment_line$:Input[curr_line+1]:
+                        1
+                        # debug("Current line number = ".(1+curr_line))
+                        curr_line += 1
+                        single_line = ${Input}[curr_line]
+                        # chomp single_line
+                        # output_comment_line(tab_depth, single_line, last_line, Output)
+                    if first_line:
+                        # my libraries = import_libraries(Input)
+                        if libraries > 0: # output_python(tab_depth, "import ", Output)                        
+                        if libraries > 0: # output_python_line(tab_depth, join(', ', libraries), last_line, Output)                        
+                    if :
+                    1
+                    					# #######  Variable Declaration  #########
+                    					# #######################################
+                    # debug("Line Type:- Variable Declaration ")
+                    # output_python_line(tab_depth, "single_line", last_line, Output)
+                    while single_line =~ /[\$\\%]\w+/g:
+                        1
+                        1
+                    if :
+                    1
+                    					# #######  Function Declaration  ########
+                    					# #######################################
+                    # my next_line = ${Input}[curr_line + 1]
+                    # chomp next_line
+                    if is_function_arg_dec_line(next_line:
+                        # output_python(tab_depth, "keywords{'sub'}", Output)
+                        # output_python(0, get_function_name(single_line), Output)
+                        if is_function_arg_dec_line(next_line:
+                            1
+                            							# Declare functions accordingly.
+                            curr_line += 1
+                            # output_python(0, get_function_defined_args(${Input}[curr_line]), Output)
+                            if :
+                            1
+                            # output_python(0, get_function_prototype_args(single_line), Output)
+                        # output_python_line(0, ":\n", last_line, Output)
+                        curr_line = convert_to_python(tab_depth+1, curr_line+1, Input, Output)
+                    if :
+                    1
+                    					# #######  Pre/Post Inc/Dec Line  #######
+                    					# #######################################
+                    # output_python_line(tab_depth, "single_line", last_line, Output)
+                    if :
+                    1
+                    					# ########### If Statements #############
+                    					# #######################################
+                    # debug("Line Type:- If")
+                    curr_line = convert_if_statement_to_python(tab_depth, curr_line, Input, Output)
+                    if :
+                    1
+                    					# ########## For Statements #############
+                    					# #######################################
+                    # debug("Line Type:- For ")
+                    curr_line = convert_for_statement_to_python(tab_depth, curr_line, Input, Output)
+                    if :
+                    1
+                    					# ###########  While Loops  #############
+                    					# #######################################
+                    # debug("Line Type:- While ")
+                    # my condition = get_while_condition(single_line)
+                    condition = strip_condition_padding(condition)
+                    # output_python_line(tab_depth, "while condition:", last_line, Output)
+                    curr_line = convert_to_python(tab_depth+1, curr_line+1, Input, Output)
+                    if :
+                    1
+                    					# ###############  Prints  ##############
+                    					# #######################################
+                    # debug("Line Type:- Print ")
+                    # my print_line = strip_outermost_parentheses(get_print(single_line))
+                    print_line = strip_new_line(print_line) if has_explicit_new_line(print_line)
+                    print_line =~ s/[\"\']\s*\$(\w+)\s*[\"\']/1 /g
+                    print_line .= "," if  not has_explicit_new_line(single_line)
+                    # output_python_line(tab_depth, "print_line", last_line, Output)
+                    
+                    if :
+                    1
+                    					# #####  Keyword or Function Call  ######
+                    					# #######################################
+                    single_line = strip_outer_spaces(single_line)
+                    if defined keywords:single_line {: 
+                    
+                    # debug("Line Type:- Keyword ")
+                    # output_python_line(tab_depth, "keywords{single_line}", last_line, Output)
+                    if :
+                    1
+                    						# ########### Undertermined #############
+                    						# #######################################
+                    # debug("Line Type:- Undertermined ")
+                    # output_python_line(tab_depth, "# single_line", last_line, Output)
+                
+                if :
+                # debug("Line Type:- Print Maybe")
+                # output_python_line(tab_depth, "single_line", last_line, Output)
+                if :
+                1
+                					# ########### Undertermined #############
+                					# #######################################
+                # debug("Line Type:- Undertermined ")
+                # output_python_line(tab_depth, "# single_line", last_line, Output)
+                curr_line = convert_to_python(tab_depth+1, curr_line+1, Input, Output) if has_strictly_opening_brace(single_line)
+            # debug("")
+            # debug("")
+        if :
+        # debug("Line Type:- Empty ")
+        # output_python_line(tab_depth, "\n", 0, Output)
+        curr_line += 1    
+if curr_line >= line_num: # return curr_line
+# die "Main: Current Line out of bounds"

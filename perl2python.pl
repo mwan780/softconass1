@@ -57,17 +57,7 @@ if($#ARGV > 0 && $ARGV[0] =~ /\-d/) {
 	require 'unit_tests.pl';
 } 
 
-# Hash keywords for translation later
-%keywords = (
-	'last' => 'break',
-	'next' => 'continue',
-	'print' => 'print',
-	'split' => '',
-	'join' => '',
-	'=~ s/' => 're.sub',
-	'=~ /' => 're.match',
-	'sub' => 'def',
-);
+
 
 # Process Files
 # Check if any files have been parsed as arguments
@@ -181,6 +171,26 @@ sub output_python_line ( $$$$ ) {
 }
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Purpose:-     Outputs comment line to standard output followed               %
+#               by newline character                                           %
+# Prototype:-   void output_comment_line($tab_depth, $python, $last_line)      %
+# Param int     $tab_depth :- Level of indentation to prepend to output        %
+# Param string  $python    :- Content to output                                %
+# Param boolean $last_line :- Determines if new line char should be appended   %
+# Param array ref $Output  :- Reference to array for output lines              %
+# Returns                  :- void                                             %
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+sub output_comment_line ( $$$$ ) {
+	my ($tab_depth, $comment, $last_line, $Output) = @_;
+	my $indentation = "";
+	for my $count (0..$tab_depth-1) {
+		$indentation .= "    ";
+	}
+	push @{$Output}, "$indentation$comment";
+	push @{$Output}, "\n" if !$last_line;
+}
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Purpose:-     Outputs message with new line character to standard output if  %
 #               debugging flag (-d) has been parsed as programs first argument %
 # Prototype:-   void debug($message)                                           %
@@ -203,6 +213,10 @@ sub debug  ( $ )  {
 sub format_output ( @ ) {
 	my (@input) = @_;
 	my $string = join('', @input);
+	#$string =~ s/\n/\n\^/g;
+	#$string =~ s/\s{4}/\t/g;
+	# Replace consecutive spaces with single one
+	#$string =~ s/\s+/ /g;
 	@input = split('\n', $string);
 	return @input;
 }
@@ -305,20 +319,21 @@ sub convert_to_python ( $$$$ ) {
 					$single_line = $1;
 					my $first_line = ($curr_line == 0);
 					# Convert Shabang 
-					$single_line =~ s/perl \-w/python2.7 \-u/;
+					$single_line =~ s/perl\s*\-w/python2.7 \-u/ if $first_line;
 					# Print all consecutive comment lines
-					output_python_line($tab_depth, $single_line, $last_line, $Output);
+					
+					output_comment_line($tab_depth, $single_line, $last_line, $Output);
 					while(is_comment_line(${$Input}[$curr_line+1])) {
 						# Note ++ increments the current line counter for accurate return val
 						debug("Current line number = ".(1+$curr_line));
-						$single_line = ${$Input}[++$curr_line];
+						$single_line = strip_outer_spaces(${$Input}[++$curr_line]);
 						chomp $single_line;
-						output_python_line($tab_depth, $single_line, $last_line, $Output);
+						output_comment_line($tab_depth, $single_line, $last_line, $Output);
 					}
 					if ($first_line) {
 						my @libraries = import_libraries($Input);
 						output_python($tab_depth, "import ", $Output) if @libraries > 0;
-						output_python_line($tab_depth, join(', ', @libraries), $last_line, $Output);
+						output_python_line($tab_depth, join(', ', @libraries), $last_line, $Output) if @libraries > 0;
 					}
 				} elsif (is_var_declaration_line($single_line)) { 
 					# #######################################
@@ -333,40 +348,34 @@ sub convert_to_python ( $$$$ ) {
 					# #######################################
 					# #######  Function Declaration  ########
 					# #######################################
-					output_python($tab_depth, "$keywords{'sub'}", $Output);
-					output_python(0, get_function_name($single_line), $Output);
-					if (is_function_arg_dec_line(${$Input}[$curr_line+1])) {
-						# If Function Argument Declaration then 
-						# Declare functions accordingly.
-						$curr_line++;
-						output_python(0, get_function_defined_args(${$Input}[$curr_line]), $Output);
-					} else {
-						# Declare Function Arguments as best as possible
-						output_python(0, get_function_prototype_args($single_line), $Output); 	
+					my $next_line = ${$Input}[$curr_line + 1];
+					chomp $next_line;
+					if(is_function_arg_dec_line($next_line) || is_opening_brace_line($next_line) || has_opening_brace($single_line)) {
+						output_python($tab_depth, "$keywords{'sub'}", $Output);
+						output_python(0, get_function_name($single_line), $Output);
+						if (is_function_arg_dec_line($next_line)) {
+							# If Function Argument Declaration then 
+							# Declare functions accordingly.
+							$curr_line++;
+							output_python(0, get_function_defined_args(${$Input}[$curr_line]), $Output);
+						} else {
+							# Declare Function Arguments as best as possible
+							output_python(0, get_function_prototype_args($single_line), $Output); 	
+						}
+						output_python_line(0, ":\n", $last_line, $Output); 
+						$curr_line = convert_to_python($tab_depth+1, $curr_line+1, $Input, $Output);
 					}
-					
-					
-					output_python_line(0, ":\n", $last_line, $Output); 
-					$curr_line = convert_to_python($tab_depth+1, $curr_line+1, $Input, $Output);
 				} elsif (is_prepost_incdec_line($single_line)) {
 					# #######################################
 					# #######  Pre/Post Inc/Dec Line  #######
 					# #######################################
 					output_python_line($tab_depth, "$single_line", $last_line, $Output);
-				} elsif ($single_line =~ /\s*if\s*\(?/) {
+				} elsif (is_if_line($single_line)) {
 					# #######################################
 					# ########### If Statements #############
 					# #######################################
 					debug("Line Type:- If");
 					$curr_line = convert_if_statement_to_python($tab_depth, $curr_line, $Input, $Output);
-				} elsif (is_else_line($single_line)) {
-					# #######################################
-					# ######### Else Statements #############
-					# #######################################
-					debug("Line Type:- Else ");
-					debug("Line Type:- Else Type :- Else ");
-					# Print to tab depth minus one and continue traversal
-					output_python_line(($tab_depth-1), "else:", $last_line, $Output);
 				} elsif(is_for_statement($single_line)) {
 					# #######################################
 					# ########## For Statements #############
@@ -401,6 +410,12 @@ sub convert_to_python ( $$$$ ) {
 					if(defined $keywords{$single_line}) {
 					 	debug("Line Type:- Keyword ");
 						output_python_line($tab_depth, "$keywords{$single_line}", $last_line, $Output);
+					} elsif (has_lib_function_call($single_line)) {
+						# #######################################
+						# ###### Assumed Lib Function Call ######
+						# #######################################
+						debug("Line Type:- Lib Function ");
+						output_python_line($tab_depth, "$single_line", $last_line, $Output);
 					} else {
 						# #######################################
 						# ########### Undertermined #############
@@ -408,9 +423,14 @@ sub convert_to_python ( $$$$ ) {
 						debug("Line Type:- Undertermined ");
 						output_python_line($tab_depth, "# $single_line", $last_line, $Output);
 					}
-
 				} elsif (has_print_call($single_line)) {
 					debug("Line Type:- Print Maybe");
+					output_python_line($tab_depth, "$single_line", $last_line, $Output);
+				} elsif (has_lib_function_call($single_line)) {
+					# #######################################
+					# ###### Assumed Lib Function Call ######
+					# #######################################
+					debug("Line Type:- Lib Function ");
 					output_python_line($tab_depth, "$single_line", $last_line, $Output);
 				} else {
 					# #######################################
@@ -418,6 +438,7 @@ sub convert_to_python ( $$$$ ) {
 					# #######################################
 					debug("Line Type:- Undertermined ");
 					output_python_line($tab_depth, "# $single_line", $last_line, $Output);
+					$curr_line = convert_to_python($tab_depth+1, $curr_line+1, $Input, $Output) if has_strictly_opening_brace($single_line);
 				}
 				debug("");
 				debug("");
@@ -461,7 +482,7 @@ sub convert_if_statement_to_python ( $$$$ ) {
 		
 		output_python_line($tab_depth, "if $condition:", $last_line, $Output);
 		$curr_line = convert_to_python($tab_depth+1, $curr_line+1, $Input, $Output);
-	} elsif (has_both_braces($single_line)) {
+	} elsif (has_opening_then_closing_braces($single_line)) {
 		# **************************************
 		# ************ Single Line If **********
 		# if condition { };
@@ -504,6 +525,14 @@ sub convert_if_statement_to_python ( $$$$ ) {
 		$condition = strip_condition_padding($condition);
 		# Print to tab depth minus one and continue traversal
 		output_python_line(($tab_depth-1), "elif $condition:", $last_line, $Output);
+	} elsif (is_else_line($single_line)) {
+		# #######################################
+		# ######### Else Statements #############
+		# #######################################
+		debug("Line Type:- Else ");
+		debug("Line Type:- Else Type :- Else ");
+		# Print to tab depth minus one and continue traversal
+		output_python_line(($tab_depth-1), "else:", $last_line, $Output);
 	} else {
 		# **************************************
 		# ******  Undertimed If Statement ******
@@ -581,8 +610,8 @@ sub convert_for_statement_to_python ( $$$$ ) {
 		# ******  Undertimed For Statement *****
 		# **************************************
 		debug("Line Type:- For Type :- Undertimed ");
-	
 		output_python_line($tab_depth, "# $single_line", $last_line, $Output);
+		$curr_line = convert_to_python($tab_depth+1, $curr_line+1, $Input, $Output);
 	}
 	return $curr_line if $curr_line >= $line_num;
 	die "For: Current Line out of bounds";
@@ -638,6 +667,26 @@ sub convert_set_to_python ( $ ) {
 		$result = "$1";
 	}
 	return $result;
+}
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Purpose:-     Checks if any word in string is a library function and converts%
+#               the function to a python equivalent if it is.                  %
+# Prototype:-   void  convert_set_to_python($line)                             %
+# Param string  $line      :- Set representation in perl                       %
+# Returns                  :- void                                             %
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+sub convert_lib_functions ( $ ) {
+	my ($line) = @_;
+	foreach my $word (split(/((\()|( ))+/, strip_regex_expressions($line))) {
+		print "\n-$word-\n";
+		if(defined $lib_function_conversion_regex{$word}) {
+			# Word is a Library Function
+			print "\n-$word-\n";
+			$line = apply_regex($lib_function_conversion_regex{$word}, $line);
+		}
+	}
+	return $line;
 }
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
