@@ -679,10 +679,10 @@ sub convert_set_to_python ( $ ) {
 sub convert_lib_functions ( $ ) {
 	my ($line) = @_;
 	foreach my $word (split(/((\()|( ))+/, strip_regex_expressions($line))) {
-		print "\n-$word-\n";
+		#print "\n-$word-\n";
 		if(defined $lib_function_conversion_regex{$word}) {
 			# Word is a Library Function
-			print "\n-$word-\n";
+			# print "\n-$word-\n";
 			$line = apply_regex($lib_function_conversion_regex{$word}, $line);
 		}
 	}

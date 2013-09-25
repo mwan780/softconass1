@@ -89,7 +89,7 @@ sub get_function_name ( $ );
 	'print' => '//',
 	'split' => 's/split\s*\(\s*\/?\s*(.+)\/?,\s*([^\)]+)\)?/$2.split($1)/g',
 	'join'  => 's/join\s*\(\s*\/?\s*(.+)\/?,\s*([^\)]+)\)?/$1.join($2)/g',
-	'chomp' => 's/chomp\s*\(?\s*(\S+)\s*/$1.rstrip(\'\\\n\')/g',
+	'chomp' => 's/chomp\s*\(?\s*(\S+)\s*/$1 = $1.rstrip()/g',
 	'//'    => 's/(\S+)\s*=~\s*\/(.*?)\//re.match(r\'$2\', $1)/g',
 	'///'   => 's/(\S+)\s*=~\s*\/(.*?)\/(.*?)\//$1 = re.sub(r\'$2\', \'$3\', $1)/g',
 	'//i'    => 's/(\S+)\s*=~\s*\/(.*?)\//re.match(r\'$2\', $1)/g',
@@ -416,8 +416,8 @@ sub strip_input_methods ( $ ) {
 
 sub strip_comparators ( $ ) {
 	my ($line) = @_;
-	$line =~ s/\s-eq\s/ == /g;
-	$line =~ s/\s-ne\s/ != /g;
+	$line =~ s/\seq\s/ == /g;
+	$line =~ s/\sne\s/ != /g;
 	return strip_outer_spaces($line);	
 }
 
