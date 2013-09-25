@@ -149,11 +149,11 @@ sub run_strip_tests {
 	is(apply_regex('s/split\s*\(\s*\/?\s*(.+)\/?,\s*([^\)]+)\)?/$2.split($1)/g',        'split ("hello", string)'),  'string.split("hello")', 'Apply Regex');
 	is(apply_regex($lib_function_conversion_regex{'split'}, 'split ("hello", string)'), 'string.split("hello")',                              'Apply Regex');
 	is(apply_regex($lib_function_conversion_regex{'join'}, 'join (" ", $string)'),      '" ".join($string)',                                  'Apply Regex');
-	is(apply_regex($lib_function_conversion_regex{'chomp'}, 'chomp $variable'),         '$variable.rstrip(\'\n\')',                           'Apply Regex');
-	is(apply_regex($lib_function_conversion_regex{'//'}, '$line =~ /hello/'),           're.match(r\'hello\', $line)',                'Apply Regex');
-	is(apply_regex($lib_function_conversion_regex{'///'}, '$line =~ s/hello/goodbye/'), '$line =~ re.sub(r\'hello\', \'goodbye\', $line)',     'Apply Regex');
-	is(apply_regex($lib_function_conversion_regex{'//i'}, '$line =~ /hello/i'),         're.match(r\'hello\', $line)',                'Apply Regex');
-	is(apply_regex($lib_function_conversion_regex{'///i'}, '$line =~ s/hello/goodbye/i'),'$line =~ re.sub(r\'hello\', \'goodbye\', $line)',     'Apply Regex');
+	is(apply_regex($lib_function_conversion_regex{'chomp'}, 'chomp $variable'),         '$variable = $variable.rstrip()',                                 'Apply Regex');
+	is(apply_regex($lib_function_conversion_regex{'//'}, '$line =~ /hello/'),           're.match(r\'hello\', $line)',                        'Apply Regex');
+	is(apply_regex($lib_function_conversion_regex{'///'}, '$line =~ s/hello/goodbye/'), '$line =~ re.sub(r\'hello\', \'goodbye\', $line)',    'Apply Regex');
+	is(apply_regex($lib_function_conversion_regex{'//i'}, '$line =~ /hello/i'),         're.match(r\'hello\', $line)',                        'Apply Regex');
+	is(apply_regex($lib_function_conversion_regex{'///i'}, '$line =~ s/hello/goodbye/i'),'$line =~ re.sub(r\'hello\', \'goodbye\', $line)',   'Apply Regex');
 
 	return 1;
 }

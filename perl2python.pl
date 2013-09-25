@@ -678,7 +678,9 @@ sub convert_set_to_python ( $ ) {
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sub convert_lib_functions ( $ ) {
 	my ($line) = @_;
-	foreach my $word (split(/((\()|( ))+/, strip_regex_expressions($line))) {
+	# Reverse traversal of words so that subfunctions (E.g. join in print statement)
+	# Can be evaluated correctly.
+	foreach my $word (reverse (split(/((\()|( ))+/, strip_regex_expressions($line)))) {
 		#print "\n-$word-\n";
 		if(defined $lib_function_conversion_regex{$word}) {
 			# Word is a Library Function

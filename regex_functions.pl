@@ -86,9 +86,9 @@ sub get_function_name ( $ );
 );
 # 0 = undefined
 %lib_function_conversion_regex = (
-	'print' => '//',
-	'split' => 's/split\s*\(\s*\/?\s*(.+)\/?,\s*([^\)]+)\)?/$2.split($1)/g',
-	'join'  => 's/join\s*\(\s*\/?\s*(.+)\/?,\s*([^\)]+)\)?/$1.join($2)/g',
+	'print' => 's/(\,\s*)?\"(.*?)\\\n\s*\"/$2/g',
+	'split' => 's/split\s*\(\s*\/?\s*(.+?)\/?,\s*([^\)]+)\)?/$2.split($1)/g',
+	'join'  => 's/join\s*\(\s*\/?\s*(.+?)\/?,\s*([^\)]+)\)?/$1.join($2)/g',
 	'chomp' => 's/chomp\s*\(?\s*(\S+)\s*/$1 = $1.rstrip()/g',
 	'//'    => 's/(\S+)\s*=~\s*\/(.*?)\//re.match(r\'$2\', $1)/g',
 	'///'   => 's/(\S+)\s*=~\s*\/(.*?)\/(.*?)\//$1 = re.sub(r\'$2\', \'$3\', $1)/g',
@@ -607,14 +607,19 @@ sub get_function_name ( $ ) {
 	return "";
 }
 
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Purpose:-     Returns capture part of regex match on line parsed             %
+# Prototype:-   void match_description($line)                                  %
+# Param string  $line      :- Content to compare to match on                   %
+# Returns                  :- string                                           %
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sub apply_regex ( $$ ) {
 	my ($regex, $string) = @_;
+	debug("$string =~ $regex");
 	eval "\$string =~ $regex";
-	
+	debug("$string");
 	return $string;
 }
-
-# Hash keywords for translation later
 
 
 1;

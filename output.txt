@@ -1,23 +1,43 @@
-Running testall.sh
-Testing .... test/3/cookie0.pl
-test/3/echo_2.pl
-test/3/echonl_0.pl
-test/3/five.pl
-test/3/prime0.pl
-test/3/tetrahedral.pl
-######################################
-Converting perl-to-python for test/3/cookie0.pl
-######################################
-#!/usr/bin/python2.7 -u						#!/usr/bin/python2.7 -u
-import sys							import sys
+#!/usr/bin/python2.7 -u
 
-while 1:							while 1:
-    print "Give me cookie"					    print "Give me cookie"
-    line = sys.stdin.readline()					    line = sys.stdin.readline()
-    line = line.rstrip()					    line = line.rstrip()
-    if line == "cookie":					    if line == "cookie":
-        break							        break
-print "Thank you"						print "Thank you"
+# Print Tests
 
-Test:- test/3/cookie0:-
-Test:- Direct Comparison Source Code Check......................0... Passed ............ test/3/cookie0
+# Standard Print
+print "Hello World",
+# New Line
+print ""
+print "Hello World",
+# Standard Print Line Variations
+print "HelloWorld"
+print "Hello","World",""
+print "Hello"."World".""
+
+integer=123
+print integer ,
+print ""
+print integer .""
+print integer ,""
+print integer,
+print ""
+print integer.""
+print integer,""
+
+string=Hello
+print string ,
+print ""
+print string .""
+print string ,""
+print string,
+print ""
+print string.""
+print string,""
+
+metachars="hel-/\$"
+print metachars ,
+print ""
+print metachars .""
+print metachars ,""
+print metachars,
+print ""
+print metachars.""
+print metachars,""

@@ -55,3 +55,5 @@
 "Update", "2013-09-25", "09:35:24", "Coding", "Created output comment line which does not check for invalid python"
 "Update", "2013-09-25", "11:30:39", "Coding", "Created strip quoted expressions function to remove false positive and not consider quoted or regex statements when determining the nature of a line"
 "Update", "2013-09-25", "14:56:00", "Coding", "Implemented library function conversion for split, join, chomp and started regex."
+"Update", "2013-09-26", "09:19:42", "Testing", "Downloaded new subset tests andran with testing scripts. All of subset 0,1,2 are successful and minor corrections only needed for 3"
+"Update", "2013-09-26", "09:58:00", "Coding", "Updated print function handling"
