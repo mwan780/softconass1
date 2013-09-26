@@ -656,12 +656,15 @@ sub convert_prepost_incdec ( $ ) {
 sub convert_set_to_python ( $ ) {
 	my ($line) = @_;
 	my $result = "";
-	if($line =~ /\s*\((.+)\s*\.\.\s*([\$\@\%]\#?.+)\)\s*/) {
+	if($line =~ /\s*\(0\s*\.\.\s*([\$\@\%]\#?.+)\)\s*/) {
 		# (1..(@array)|($#array))
-		$result = "range($1, $2)";
+		$result = "xrange($1)";
+	} elsif($line =~ /\s*\((.+)\s*\.\.\s*([\$\@\%]\#?.+)\)\s*/) {
+				# (1..(@array)|($#array))
+		$result = "xrange($1, $2)";
 	} elsif ($line =~ /\s*\((.+)\s*\.\.\s*(.+)\)\s*/) {
 		# (1..x+1)
-		$result = "range($1, ".($2+1).")";
+		$result = "xrange($1, ".($2+1).")";
 	} elsif ($line =~ /^\s*\(\s*(@\w+)\s*\)\s*$/) {
 		# (@array)
 		$result = "$1";

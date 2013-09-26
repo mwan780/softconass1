@@ -405,7 +405,7 @@ sub strip_input_methods ( $ ) {
 	$line =~ s/\<STDOUT\>/sys.stdout.write()/g;
 	$line =~ s/\<STDERR\>/sys.stderr.write()/g;
 	$line =~ s/\&1/sys.stdout.write()/g;
-	$line =~ s/\$\#ARGV/len(sys.argv)/g;
+	$line =~ s/\$\#ARGV/len(sys.argv) - 1/g;
 	$line =~ s/\&2/sys.stderr.write()/g;
 	$line =~ s/len\(\@ARGV\)/len(sys.argv)/g;
 	$line =~ s/\$ARGV\[(.*)\]/sys.argv[$1+1]/g;
