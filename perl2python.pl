@@ -110,6 +110,9 @@ foreach my $file (@ARGV) {
 	@perl_input = <PERL>;
 	# Get Reference to Input Contents
 	$Perl_ref = \@perl_input;
+	store_variables($Perl_ref);
+
+
 	# Create Empty Array for Output Contents
 	@python_output = ();
 	# Get Reference to Output Contents
@@ -154,6 +157,26 @@ if ( !($#ARGV >= 0) ) {
 	}
 	array_compare($Perl_ref, $Python_ref, "");
 }
+
+
+sub store_variables ( $ ) {
+	my ($Input) = @_;
+	my $input_string = join ('', @{$Input});
+	$input_string = strip_quoted_expressions($input_string);
+	my %code_variables = ();
+	my @scalars_found = $input_string =~ /(\$\w+)\W/g;
+	foreach my $scalar (@scalars_found) {
+		if(!exists $code_variables{'scalars'}{$scalar}) {
+			debug("$scalar");
+			my $type = 'str';
+			
+
+			$code_variables{'scalars'}{$scalar} = $type;
+
+		}
+	}
+}
+
 
 
 
@@ -732,7 +755,7 @@ sub convert_lib_functions ( $ ) {
 	# Can be evaluated correctly.
 	foreach my $word (reverse (split(/((\()|( ))+/, strip_regex_expressions($line)))) {
 		#print "\n-$word-\n";
-		if(defined $lib_function_conversion_regex{$word}) {
+		if(defined $word && defined $lib_function_conversion_regex{$word}) {
 			# Word is a Library Function
 			# print "\n-$word-\n";
 			$line = apply_regex($lib_function_conversion_regex{$word}, $line);

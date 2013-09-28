@@ -180,6 +180,15 @@ sub run_strip_tests {
 	is(apply_regex($lib_function_conversion_regex{'///'}, '$line =~ s/hello/goodbye/'), '$line = re.sub(r\'hello\', \'goodbye\', $line)',     'Apply Regex');
 	is(apply_regex($lib_function_conversion_regex{'//i'}, '$line =~ /hello/i'),         're.match(r\'(?i)hello\', $line)',                    'Apply Regex');
 	is(apply_regex($lib_function_conversion_regex{'///i'}, '$line =~ s/hello/goodbye/i'),'$line = re.sub(r\'(?i)hello\', \'goodbye\', $line)','Apply Regex');
+	is(apply_regex($lib_function_conversion_regex{'push'}, 'push (@array, $string)'),    '@array.append($string)',                            'Apply Regex');
+	is(apply_regex($lib_function_conversion_regex{'push'}, 'push @array, $string'),      '@array.append($string)',                            'Apply Regex');
+	is(apply_regex($lib_function_conversion_regex{'pop'}, '$line = pop @array'),         '$line = @array.pop()',                              'Apply Regex');
+	is(apply_regex($lib_function_conversion_regex{'pop'}, '$line = pop (@array)'),       '$line = @array.pop()',                              'Apply Regex');
+	is(apply_regex($lib_function_conversion_regex{'reverse'}, 'reverse @array'),         '@array.reverse()',                                  'Apply Regex');
+	is(apply_regex($lib_function_conversion_regex{'.='}, '$line .= "text"'),             '$line += "text"',                                   'Apply Regex');
+	is(apply_regex($lib_function_conversion_regex{'unshift'}, 'unshift @array @list'),   '@array.extendleft(@list)',                          'Apply Regex');
+	is(apply_regex($lib_function_conversion_regex{'unshift'}, 'unshift @array 0..11'),   '@array.extendleft(0..11)',                          'Apply Regex');
+	is(apply_regex($lib_function_conversion_regex{'shift'}, 'shift @array'),             '@array.pop(0)',                                     'Apply Regex');
 
 	return 1;
 }

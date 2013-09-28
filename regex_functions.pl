@@ -100,14 +100,20 @@ sub get_function_name ( $ );
 );
 # 0 = undefined
 %lib_function_conversion_regex = (
-	'print' => 's/(\,\s*)?\"(.*?)\\\n\s*\"/$2/g',
-	'split' => 's/split\s*\(\s*\/?\s*(.+?)\/?,\s*([^\)]+)\)?/$2.split($1)/g',
-	'join'  => 's/join\s*\(\s*\/?\s*(.+?)\/?,\s*([^\)]+)\)?/$1.join($2)/g',
-	'chomp' => 's/chomp\s*\(?\s*(\S+)\s*/$1 = $1.rstrip()/g',
-	'//'    => 's/(\S+)\s*=~\s*\/(.*?)\/g?/re.match(r\'$2\', $1)/g',
-	'///'   => 's/(\S+)\s*=~\s*s\/(.*?)\/(.*?)\/g?/$1 = re.sub(r\'$2\', \'$3\', $1)/g',
-	'//i'    => 's/(\S+)\s*=~\s*\/(.*?)\/g?i/re.match(r\'(?i)$2\', $1)/g',
-	'///i'   => 's/(\S+)\s*=~\s*s\/(.*?)\/(.*?)\/g?i/$1 = re.sub(r\'(?i)$2\', \'$3\', $1)/g',
+	'print'   => 's/(\,\s*)?\"(.*?)\\\n\s*\"/$2/g',
+	'split'   => 's/split\s*\(\s*\/?\s*(.+?)\/?,\s*([^\)]+)\)?/$2.split($1)/g',
+	'join'    => 's/join\s*\(\s*\/?\s*(.+?)\/?,\s*([^\)]+)\)?/$1.join($2)/g',
+	'chomp'   => 's/chomp\s*\(?\s*(\S+)\s*/$1 = $1.rstrip()/g',
+	'//'      => 's/(\S+)\s*=~\s*\/(.*?)\/g?/re.match(r\'$2\', $1)/g',
+	'///'     => 's/(\S+)\s*=~\s*s\/(.*?)\/(.*?)\/g?/$1 = re.sub(r\'$2\', \'$3\', $1)/g',
+	'//i'     => 's/(\S+)\s*=~\s*\/(.*?)\/g?i/re.match(r\'(?i)$2\', $1)/g',
+	'///i'    => 's/(\S+)\s*=~\s*s\/(.*?)\/(.*?)\/g?i/$1 = re.sub(r\'(?i)$2\', \'$3\', $1)/g',
+	'push'    => 's/push\s*\(?\s*(\@\w+?)\s*,\s*([\$\"\']?\w+[\'\"]?)\s*\)?/$1.append($2)/g',
+	'pop'     => 's/pop\s*\(?\s*(\@\w+)\s*\)?\s*/$1.pop()/g',
+	'shift'   => 's/shift\s*\(?\s*(\@\w+)\s*\)?\s*/$1.pop(0)/g',
+	'unshift' => 's/unshift\s*\(?\s*(\@\w+)\s*,python \s*(\@\w+)\s*\)?\s*/$1.extendleft($2)/g',
+	'reverse' => 's/reverse\s*\(?(\@\w+)\s*\)?\s*/$1.reverse()/g',
+	'.='      => 's/\.\=/\+\=/g',
 );
 
 # #############################################################################################
@@ -217,8 +223,8 @@ sub has_explicit_new_line  ( $ ) {
 sub has_lib_function_call ( $ ) {
 	my ($line) = @_;
 	$line = strip_quoted_expressions($line);
-	foreach $word (split(/((\()|( ))/, $line)) {
-		return 1 if defined $lib_function_conversion_regex{$word};
+	foreach my $word (split(/((\()|( ))/, $line)) {
+		return 1 if defined $word && defined $lib_function_conversion_regex{$word};
 	}
 	return '';
 }
@@ -519,6 +525,8 @@ sub strip_quoted_variables ( $ ) {
 		$line =~ s/^((.*?\".*?\".*?)*[^\"]*)\"([^\"]*)(\$.+?)(\W[^\"]*)\"(.*)$/$1\"$3\" + $4 + \"$5\"/g;
 	}
 	$line =~ s/[\"\']\s*(\$\w+?)\s*[\"\']/$1 /g;
+	$line =~ s/\"\"\s*\+\s*//g;
+	$line =~ s/\"\"\s*//g;
 	debug("Print Output :- stripped $line quotes");
 	return strip_outer_spaces($line);
 }

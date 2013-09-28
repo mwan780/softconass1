@@ -61,3 +61,4 @@
 "Update", "2013-09-28", "12:05:21", "Coding", "Added unix filter support and stdout write functionality"
 "Update", "2013-09-28", "12:06:00", "Commenting", "Added File headers and descriptions"
 "Update", "2013-09-28", "12:47:49", "Commentng", "Formated comments and defined program structure"
+"Update", "2013-09-28", "14:42:23", "Coding", "Implemented remaining library function translations"
