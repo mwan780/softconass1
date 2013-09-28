@@ -1,10 +1,24 @@
 #!/usr/bin/perl -w 
-# *********************************
-# *********************************
-# Author:- Steven Falconieri    
-# *********************************
-# *********************************
-
+# #############################################################################################
+# #############################################################################################
+# ###############################                          ####################################
+# ###############################     Perl To Python       ####################################
+# ###############################                          ####################################
+# #############################################################################################
+# #############################################################################################
+# #######  Lecturer   :- Andrew Taylor                           ##############################
+# #######  Course     :- COMP2041 Software Construction          ##############################
+# #######  Author     :- Steven Falconieri                       ##############################
+# #######  Znumber    :- z3419220                                ##############################
+# #######  Created    :- September 2013                          ##############################
+# #######  Assignment :- Perl2Python                             ##############################
+# #######  Language   :- Perl                                    ##############################
+# #######  Requires   :- perl2python.pl, unit_tests.pl           ##############################
+# #######  Description:- Contains Regex Functions associated with         #####################
+# #######                perl2python translation. Functions are           #####################
+# #######                grouped into five categories                     #####################
+# #######                (has, is, strip, get & apply) of with different  #####################
+# #######                purposes and return types for simplicity.        #####################
 # #############################################################################################
 # #############################################################################################
 # #############################################################################################
@@ -90,10 +104,10 @@ sub get_function_name ( $ );
 	'split' => 's/split\s*\(\s*\/?\s*(.+?)\/?,\s*([^\)]+)\)?/$2.split($1)/g',
 	'join'  => 's/join\s*\(\s*\/?\s*(.+?)\/?,\s*([^\)]+)\)?/$1.join($2)/g',
 	'chomp' => 's/chomp\s*\(?\s*(\S+)\s*/$1 = $1.rstrip()/g',
-	'//'    => 's/(\S+)\s*=~\s*\/(.*?)\//re.match(r\'$2\', $1)/g',
-	'///'   => 's/(\S+)\s*=~\s*\/(.*?)\/(.*?)\//$1 = re.sub(r\'$2\', \'$3\', $1)/g',
-	'//i'    => 's/(\S+)\s*=~\s*\/(.*?)\//re.match(r\'$2\', $1)/g',
-	'///i'   => 's/(\S+)\s*=~\s*\/(.*?)\/(.*?)\//$1 = re.sub(r\'$2\', \'$3\', $1)/g',
+	'//'    => 's/(\S+)\s*=~\s*\/(.*?)\/g?/re.match(r\'$2\', $1)/g',
+	'///'   => 's/(\S+)\s*=~\s*s\/(.*?)\/(.*?)\/g?/$1 = re.sub(r\'$2\', \'$3\', $1)/g',
+	'//i'    => 's/(\S+)\s*=~\s*\/(.*?)\/g?i/re.match(r\'(?i)$2\', $1)/g',
+	'///i'   => 's/(\S+)\s*=~\s*s\/(.*?)\/(.*?)\/g?i/$1 = re.sub(r\'(?i)$2\', \'$3\', $1)/g',
 );
 
 # #############################################################################################
@@ -192,7 +206,7 @@ sub has_regex  ( $ ) {
 sub has_system_access  ( $ ) {
 	my ($line) = @_;
 	$line = strip_quoted_expressions($line);
-	return $line =~ /((open)|(close)|(\<\>)|(STDIN)|(STDOUT)|(STDERR)|(\&1)|(\&2)|(ARGV))/;
+	return $line =~ /((open)|(close)|(STDIN)|(STDOUT)|(STDERR)|(\&1)|(\&2)|(ARGV))/;
 }
 
 sub has_explicit_new_line  ( $ ) {
@@ -207,6 +221,11 @@ sub has_lib_function_call ( $ ) {
 		return 1 if defined $lib_function_conversion_regex{$word};
 	}
 	return '';
+}
+
+sub has_unix_filter ( $ ) {
+	my ($line) = @_;
+	return $line =~ /\<\>/;
 }
 
 # #############################################################################################
@@ -341,6 +360,11 @@ sub is_single_condition ( $ ) {
 	return $line !~ /((\&\&)|(\|\|))/;		
 }
 
+sub is_unix_filter_pattern_line ( $ ) {
+	my ($line) = @_;
+	return $line =~ /^\s*while\s*\(?\s*(.+)?\s*\=?\s*\<(.*)?\>\s*\)?\s*\{?\s*$/;		
+}
+
 # #############################################################################################
 # #############################################################################################
 # #############################################################################################
@@ -401,6 +425,7 @@ sub strip_logic_operators ( $ ) {
 
 sub strip_input_methods ( $ ) {
 	my ($line) = @_;
+	$line =~ s/\<\>/fileinput.input()/g;
 	$line =~ s/\<STDIN\>/sys.stdin.readline()/g;
 	$line =~ s/\<STDOUT\>/sys.stdout.write()/g;
 	$line =~ s/\<STDERR\>/sys.stderr.write()/g;
@@ -432,7 +457,6 @@ sub strip_invalid_python ( $ ) {
 	$line = strip_dollar_signs($line);
 	$line = strip_at_signs($line);
 	#print "should be no dol signs here :- $line\n";
-
 	my @valid_python = convert_prepost_incdec($line);
 	#debug("Produced Output:- @valid_python");
 	return @valid_python;
@@ -484,6 +508,19 @@ sub strip_quoted_expressions ( $ ) {
 		$line =~ s/^((.*?\".*?\".*?)*[^\"]*)\"[^\"]+\"(.*)$/$1\"\"$3/g;
 	}
 	return $line;
+}
+
+sub strip_quoted_variables ( $ ) {
+	my ($line) = @_;
+	debug("Print :- stripping $line quotes");
+	$line =~ s/[\"\']\s*(\$\w+(\[.+\])?)\s*[\"\']/$1 /g;
+	while ($line =~ /^((.*?\".*?\".*?)*[^\"]*)\"([^\"]*)(\$.+?)(\W[^\"]*)\"(.*)$/) {
+		debug("Print :- stripping $line quotes");
+		$line =~ s/^((.*?\".*?\".*?)*[^\"]*)\"([^\"]*)(\$.+?)(\W[^\"]*)\"(.*)$/$1\"$3\" + $4 + \"$5\"/g;
+	}
+	$line =~ s/[\"\']\s*(\$\w+?)\s*[\"\']/$1 /g;
+	debug("Print Output :- stripped $line quotes");
+	return strip_outer_spaces($line);
 }
 
 # #############################################################################################
@@ -607,17 +644,33 @@ sub get_function_name ( $ ) {
 	return "";
 }
 
+sub get_unix_filter_input_variable ( $ ) {
+	my ($line) = @_;
+	return strip_outer_spaces($1) if $line =~ /^\s*while\s*\(?\s*(.+?)\s*\=?\s*(\<.*?\>)\s*\)?\s*\{?\s*$/;
+	return "";
+}
+
+sub get_unix_filter_input_source ( $ ) {
+	my ($line) = @_;
+	return strip_outer_spaces($2) if $line =~ /^\s*while\s*\(?\s*(.+?)\s*\=?\s*(\<.*?\>)\s*\)?\s*\{?\s*$/;
+	return "";
+}
+
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# Purpose:-     Returns capture part of regex match on line parsed             %
-# Prototype:-   void match_description($line)                                  %
-# Param string  $line      :- Content to compare to match on                   %
+# Purpose:-     Applies regex statement to string and returns the result       %
+# Prototype:-   string apply_regex($regex, $line)                              %
+# Param string  $regex     :- Regex statement to apply                         %
+# Param string  $string    :- Content to apply regex to                        %
 # Returns                  :- string                                           %
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sub apply_regex ( $$ ) {
 	my ($regex, $string) = @_;
-	debug("$string =~ $regex");
+	#debug("string is $string");
+	#debug("regex  is $regex");
+	#debug("eval $string =~ $regex");
 	eval "\$string =~ $regex";
-	debug("$string");
+	#debug("eval result = $?");
+	#debug("$string");
 	return $string;
 }
 

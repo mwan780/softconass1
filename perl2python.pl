@@ -1,9 +1,49 @@
 #!/usr/bin/perl -w 
-# *********************************
-# *********************************
-# Author:- Steven Falconieri    
-# *********************************
-# *********************************
+# #############################################################################################
+# #############################################################################################
+# ###############################                          ####################################
+# ###############################     Perl To Python       ####################################
+# ###############################                          ####################################
+# #############################################################################################
+# #############################################################################################
+# #######  Lecturer   :- Andrew Taylor                           ##############################
+# #######  Course     :- COMP2041 Software Construction          ##############################
+# #######  Author     :- Steven Falconieri                       ##############################
+# #######  Znumber    :- z3419220                                ##############################
+# #######  Created    :- September 2013                          ##############################
+# #######  Assignment :- Perl2Python                             ##############################
+# #######  Language   :- Perl                                    ##############################
+# #######  Requires   :- regex_functions.pl, unit_tests.pl       ##############################
+# #######  Description:- Recursively converts Perl code to best Python equivalent.  ###########
+# #######  Program Structure:-                                                      ###########
+# #######    Main:->                                                                ###########
+# #######      |convert_to_python:->                                                ###########
+# #######      |        |convert_to_python                                          ###########
+# #######      |        |import_libraries                                           ###########
+# #######      |        |convert_to_system_out                                      ###########
+# #######      |        |output_python_line:->                                      ###########
+# #######      |        |        |strip_invalid_python:->                           ###########
+# #######      |        |        |        |strip_semi_colon                         ###########
+# #######      |        |        |        |strip_logic_operators                    ###########
+# #######      |        |        |        |strip_comparators                        ###########
+# #######      |        |        |        |strip_input_methods                      ###########
+# #######      |        |        |        |convert_lib_functions                    ###########
+# #######      |        |        |        |strip_dollar_signs                       ###########
+# #######      |        |        |        |strip_at_signs                           ###########
+# #######      |        |        |        |convert_prepost_incdec                   ###########
+# #######      |        |convert_if_statement_to_python:->                          ###########
+# #######      |        |        |convert_to_python                                 ###########
+# #######      |        |        |output_python_line                                ###########
+# #######      |        |convert_for_statement_to_python:->                         ###########
+# #######      |        |        |convert_to_python                                 ###########
+# #######      |        |        |output_python_line                                ###########
+# #######      |        |        |convert_set_to_pyton                              ###########
+# #######                                                                           ###########
+# #############################################################################################
+# #############################################################################################
+
+
+
 
 # Style Notes:-
 # If the first character of a variable is capitalised, this implies that the variable is a 
@@ -279,6 +319,7 @@ sub convert_to_python ( $$$$ ) {
 	debug("Tab Depth = $tab_depth and input line number = ".$line_num."/".($#{$Input}+1));
 	die "Line Number $line_num not in file\n" if ($line_num < 0 || $line_num > $#{$Input});
 	my $curr_line = $line_num;
+	my $system_lib = has_system_access(join('', @{$Input}));
 	for($curr_line = $line_num; $curr_line <= $#{$Input}; $curr_line++) {
 		# Break up multiple lines of code into single lines
 		my $last_line = ($curr_line == $#{$Input});
@@ -387,9 +428,15 @@ sub convert_to_python ( $$$$ ) {
 					# ###########  While Loops  #############
 					# #######################################
 					debug("Line Type:- While ");
-					my $condition = get_while_condition($single_line);
-					$condition = strip_condition_padding($condition);
-					output_python_line($tab_depth, "while $condition:", $last_line, $Output);
+					if(is_unix_filter_pattern_line($single_line)) {
+						my $input_var = get_unix_filter_input_variable($single_line);
+						my $input_source = get_unix_filter_input_source($single_line);
+						output_python_line($tab_depth, "for $input_var in $input_source:", $last_line, $Output);
+					} else {
+						my $condition = get_while_condition($single_line);
+						$condition = strip_condition_padding($condition);
+						output_python_line($tab_depth, "while $condition:", $last_line, $Output);
+					}
 					$curr_line = convert_to_python($tab_depth+1, $curr_line+1, $Input, $Output);
 				} elsif (is_print_line($single_line)) {
 					# #######################################
@@ -398,8 +445,8 @@ sub convert_to_python ( $$$$ ) {
 					debug("Line Type:- Print ");
 					my $print_line = strip_outermost_parentheses(get_print($single_line));
 					$print_line = strip_new_line($print_line) if has_explicit_new_line($print_line);
-					$print_line =~ s/[\"\']\s*\$(\w+)\s*[\"\']/$1 /g;
-					$print_line .= "," if !has_explicit_new_line($single_line);					
+					$print_line = strip_quoted_variables($print_line);
+					$print_line = convert_to_system_out($print_line) if !has_explicit_new_line($single_line) && $system_lib;					
 					output_python_line($tab_depth, "$print_line", $last_line, $Output);
 
 				} elsif (is_single_word_line(strip_outer_spaces($single_line))) {
@@ -694,16 +741,24 @@ sub convert_lib_functions ( $ ) {
 	return $line;
 }
 
+sub convert_to_system_out ( $ ) {
+	my ($line) = @_;
+	$line =~ s/print\s*\(?(.+)\)?\,?/sys.stdout.write($1)/i;
+	return $line;
+}
+
+
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Purpose:-     Checks entire file for reference of library objects such as re %
-# Prototype:-   void convert_prepost_incdec($line)                             %
+# Prototype:-   void import_libraries($line)                                   %
 # Param array ref $Input     :- Reference to array of input lines              %
-# Returns                    :- array                                            %
+# Returns                    :- array                                          %
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sub import_libraries ( $ ) {
 	my ($Input) = @_;
 	my $file = join("", @{$Input});
 	debug("Checking if Libraries need to be imported");
+	push @libraries, "fileinput" if has_unix_filter($file);
 	push @libraries, "sys" if has_system_access($file);
 	push @libraries, "re" if has_regex($file);
 	return @libraries;

@@ -37,8 +37,16 @@ sub get_function_args ( $ ) {
 	return $arguments;
 }
 
-while(<>) {
+#while(<>) {
 
-	print "$1 $2 \n" if /\s*\((.+)\s*\.\.\s*([\$\@\%]\#?.+)\)\s*/;
-}
+
+	$string = '$line =~ s/hello/goodbye/i';
+	print "$string\n";
+	$regex = 's/(\S+)\s*=~\s*s\/(.*?)\/(.*?)\//$1 = re.sub(r\'$2\', \'$3\', $1)/g' ;
+	eval "\$string =~ $regex";
+	print "$string\n";
+
+
+#	print "$1 $2 \n" if /\s*\((.+)\s*\.\.\s*([\$\@\%]\#?.+)\)\s*/;
+#}
 	

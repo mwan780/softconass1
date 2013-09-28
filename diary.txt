@@ -57,3 +57,7 @@
 "Update", "2013-09-25", "14:56:00", "Coding", "Implemented library function conversion for split, join, chomp and started regex."
 "Update", "2013-09-26", "09:19:42", "Testing", "Downloaded new subset tests andran with testing scripts. All of subset 0,1,2 are successful and minor corrections only needed for 3"
 "Update", "2013-09-26", "09:58:00", "Coding", "Updated print function handling"
+"Update", "2013-09-28", "12:04:51", "Coding", "Fixed Print variable interpolation errors"
+"Update", "2013-09-28", "12:05:21", "Coding", "Added unix filter support and stdout write functionality"
+"Update", "2013-09-28", "12:06:00", "Commenting", "Added File headers and descriptions"
+"Update", "2013-09-28", "12:47:49", "Commentng", "Formated comments and defined program structure"
