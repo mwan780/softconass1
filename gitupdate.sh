@@ -6,6 +6,7 @@
 # *********************************
 
 cd /home/steven/Documents/softconass1
+./zipgit.sh
 rm -fv *.tmp
 cd test 
 rm -fv *.tmp
