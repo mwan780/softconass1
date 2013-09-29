@@ -169,7 +169,7 @@ sub run_strip_tests {
 	is(strip_quoted_expressions('s/find/replace/g'),                                    '///',                                                'Strip Quoted Expressions');
 	is(strip_quoted_expressions('"hello"'),                                             '""',                                                 'Strip Quoted Expressions');
 	is(strip_quoted_expressions('"hello" /regex/'),                                     '"" //',                                              'Strip Quoted Expressions');
-	is(strip_quoted_variables('"this is a $test hello"'),                               '"this is a " + $test + " hello"',                    'Strip Quoted Variables');
+	is(strip_quoted_variables('"this is a $test hello"'),                               '"this is a " + test + " hello"',                    'Strip Quoted Variables');
 	is(strip_quoted_variables('"$test"'),                                               '$test',                                              'Strip Quoted Variables');
 	is(apply_regex('s/l/o/g', 'hello'),                                                 'heooo',                                              'Apply Regex');
 	is(apply_regex('s/split\s*\(\s*\/?\s*(.+)\/?,\s*([^\)]+)\)?/$2.split($1)/g',        'split ("hello", string)'),  'string.split("hello")', 'Apply Regex');

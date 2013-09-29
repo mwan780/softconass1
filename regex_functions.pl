@@ -100,8 +100,8 @@ sub get_function_name ( $ );
 );
 # 0 = undefined
 %lib_function_conversion_regex = (
-	'print'   => 's/(\,\s*)?\"(.*?)\\\n\s*\"/$2/g',
-	'split'   => 's/split\s*\(\s*\/?\s*(.+?)\/?,\s*([^\)]+)\)?/$2.split($1)/g',
+	'print'   => 's/(\,\+\.\s*)?(\".*?)\\\n\s*(\")/$2$3/g',
+	'split'   => 's/split\s*\(\s*\/?\s*([\'\"\/].*[\'\"\/])\/?,\s*([^\)]+)\)?/$2.split($1)/g',
 	'join'    => 's/join\s*\(\s*\/?\s*(.+?)\/?,\s*([^\)]+)\)?/$1.join($2)/g',
 	'chomp'   => 's/chomp\s*\(?\s*(\S+)\s*/$1 = $1.rstrip()/g',
 	'//'      => 's/(\S+)\s*=~\s*\/(.*?)\/g?/re.match(r\'$2\', $1)/g',
@@ -114,6 +114,7 @@ sub get_function_name ( $ );
 	'unshift' => 's/unshift\s*\(?\s*(\@\w+)\s*,python \s*(\@\w+)\s*\)?\s*/$1.extendleft($2)/g',
 	'reverse' => 's/reverse\s*\(?(\@\w+)\s*\)?\s*/$1.reverse()/g',
 	'.='      => 's/\.\=/\+\=/g',
+	'..'      => 's/\s*\((.+)\s*\.\.\s*(.+)\)\s*/ range($1, ($2+1))/',
 );
 
 # #############################################################################################
@@ -388,8 +389,8 @@ sub is_unix_filter_pattern_line ( $ ) {
 sub strip_outermost_parentheses ( $ )  {
 	my ($line) = @_;
 	my $no_parentheses_line = $line;
-	$no_parentheses_line =~ s/^([^\(]*)\(/$1/;
-	$no_parentheses_line =~ s/^(.*)\)([^\)]*$)/$1$2/;
+	$no_parentheses_line =~ s/\(//;
+	$no_parentheses_line =~ s/\)(.*)$/$1/;
 	return strip_outer_spaces($no_parentheses_line);
 }
 
@@ -411,7 +412,7 @@ sub strip_dollar_signs ( $ ) {
 
 sub strip_new_line ( $ ) {
 	my ($line) = @_;
-	$line =~ s/(".*)\\n(.*\".*)$/$1$2/;
+	$line =~ s/(\".*)\\n(\s*\")\s*$/$1$2/;
 	return strip_outer_spaces($line);	
 }
 
@@ -520,13 +521,14 @@ sub strip_quoted_variables ( $ ) {
 	my ($line) = @_;
 	debug("Print :- stripping $line quotes");
 	$line =~ s/[\"\']\s*(\$\w+(\[.+\])?)\s*[\"\']/$1 /g;
-	while ($line =~ /^((.*?\".*?\".*?)*[^\"]*)\"([^\"]*)(\$.+?)(\W[^\"]*)\"(.*)$/) {
-		debug("Print :- stripping $line quotes");
-		$line =~ s/^((.*?\".*?\".*?)*[^\"]*)\"([^\"]*)(\$.+?)(\W[^\"]*)\"(.*)$/$1\"$3\" + $4 + \"$5\"/g;
-	}
-	$line =~ s/[\"\']\s*(\$\w+?)\s*[\"\']/$1 /g;
+	debug("Print :- stripping $line quotes");
+	$line =~ s/(\"[^\.\+\,\"\$]*)\$(\w+)([^\.\+\,\"\$]*)/$1\" + $2 + \"$3/g;
+	$line =~ s/\./\+/g;
+	$line =~ s/[\"\']\s*[^\.\+]?\s*(\$\w+?)\s*[^\.\+]?\s*[\"\']/$1 /g;
 	$line =~ s/\"\"\s*\+\s*//g;
 	$line =~ s/\"\"\s*//g;
+	$line =~ s/\s*\+\s*$//g;
+
 	debug("Print Output :- stripped $line quotes");
 	return strip_outer_spaces($line);
 }
@@ -546,7 +548,7 @@ sub strip_quoted_variables ( $ ) {
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sub get_print ( $ ) {
 	my ($line) = @_;
-	return strip_outer_spaces($1) if $line =~ /^\s*(print\s*\(?\s*(((\"[^\"]+\"\s*)|(\s*\$\w+\s*))[\.\,\+\-\/\*])*((\"[^\"]+\"\s*)|(\s*\$\w+\s*))\)?)/;
+	return strip_outer_spaces($1) if $line =~ /^\s*(print\s*\(?\s*(((\"[^\"]+\"\s*)|(\s*\$\w+\s*))\s*[\.\,\+\-\/\*]\s*)*((\"[^\"]+\"\s*)|(\s*\$\w+\s*))\s*\)?)/;
 	return "";
 }
 
@@ -588,13 +590,13 @@ sub get_incdec_op ( $ ) {
 
 sub get_if_condition ( $ ) {
 	my ($line) = @_;
-	return strip_outer_spaces($1) if $line =~ /^\s*if\s*(\([^\)]+\))/;
+	return strip_outer_spaces($1) if $line =~ /^\s*if\s*(\(.*\))/;
 	return "";
 }
 
 sub get_if_routine ( $ ) {
 	my ($line) = @_;
-	return strip_outer_spaces($2) if $line =~ /^\s*if\s*(\([^\)]+\))\s*\{(.*)\}/;
+	return strip_outer_spaces($2) if $line =~ /^\s*if\s*(\(.*?\))\s*\{(.*)\}/;
 	return "";
 }
 
@@ -675,7 +677,7 @@ sub apply_regex ( $$ ) {
 	my ($regex, $string) = @_;
 	#debug("string is $string");
 	#debug("regex  is $regex");
-	#debug("eval $string =~ $regex");
+	debug("eval $string =~ $regex");
 	eval "\$string =~ $regex";
 	#debug("eval result = $?");
 	#debug("$string");
