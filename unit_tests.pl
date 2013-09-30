@@ -122,6 +122,8 @@ sub run_has_tests {
 	is(has_lib_function_call('chomp "hello\n"'),                     1,          'Has Lib Function Call');
 	is(has_lib_function_call('chomp "hello\n" if true;'),            1,          'Has Lib Function Call');
 	is(has_lib_function_call('"hello\n" if true;'),                  '',         'Has Lib Function Call');
+	is(has_no_args('chomp'),                                         1,          'Has No Args');
+	is(has_no_args('chomp $var'),                                    '',         'Has No Args');
 	return 1;
 }
 
@@ -169,25 +171,23 @@ sub run_strip_tests {
 	is(strip_quoted_expressions('s/find/replace/g'),                                    '///',                                                'Strip Quoted Expressions');
 	is(strip_quoted_expressions('"hello"'),                                             '""',                                                 'Strip Quoted Expressions');
 	is(strip_quoted_expressions('"hello" /regex/'),                                     '"" //',                                              'Strip Quoted Expressions');
-	is(strip_quoted_variables('"this is a $test hello"'),                               '"this is a " + test + " hello"',                    'Strip Quoted Variables');
+	is(strip_quoted_variables('"this is a $test hello"'),                               '"this is a " + test + " hello"',                     'Strip Quoted Variables');
 	is(strip_quoted_variables('"$test"'),                                               '$test',                                              'Strip Quoted Variables');
 	is(apply_regex('s/l/o/g', 'hello'),                                                 'heooo',                                              'Apply Regex');
 	is(apply_regex('s/split\s*\(\s*\/?\s*(.+)\/?,\s*([^\)]+)\)?/$2.split($1)/g',        'split ("hello", string)'),  'string.split("hello")', 'Apply Regex');
 	is(apply_regex($lib_function_conversion_regex{'split'}, 'split ("hello", string)'), 'string.split("hello")',                              'Apply Regex');
 	is(apply_regex($lib_function_conversion_regex{'join'}, 'join (" ", $string)'),      '" ".join($string)',                                  'Apply Regex');
 	is(apply_regex($lib_function_conversion_regex{'chomp'}, 'chomp $variable'),         '$variable = $variable.rstrip()',                     'Apply Regex');
-	is(apply_regex($lib_function_conversion_regex{'//'}, '$line =~ /hello/'),           're.match(r\'hello\', $line)',                        'Apply Regex');
+	is(apply_regex($lib_function_conversion_regex{'//'}, '$line =~ /hello/'),           're.search(r\'hello\', $line)',                       'Apply Regex');
 	is(apply_regex($lib_function_conversion_regex{'///'}, '$line =~ s/hello/goodbye/'), '$line = re.sub(r\'hello\', \'goodbye\', $line)',     'Apply Regex');
-	is(apply_regex($lib_function_conversion_regex{'//i'}, '$line =~ /hello/i'),         're.match(r\'(?i)hello\', $line)',                    'Apply Regex');
+	is(apply_regex($lib_function_conversion_regex{'//i'}, '$line =~ /hello/i'),         're.search(r\'(?i)hello\', $line)',                   'Apply Regex');
 	is(apply_regex($lib_function_conversion_regex{'///i'}, '$line =~ s/hello/goodbye/i'),'$line = re.sub(r\'(?i)hello\', \'goodbye\', $line)','Apply Regex');
 	is(apply_regex($lib_function_conversion_regex{'push'}, 'push (@array, $string)'),    '@array.append($string)',                            'Apply Regex');
 	is(apply_regex($lib_function_conversion_regex{'push'}, 'push @array, $string'),      '@array.append($string)',                            'Apply Regex');
 	is(apply_regex($lib_function_conversion_regex{'pop'}, '$line = pop @array'),         '$line = @array.pop()',                              'Apply Regex');
 	is(apply_regex($lib_function_conversion_regex{'pop'}, '$line = pop (@array)'),       '$line = @array.pop()',                              'Apply Regex');
-	is(apply_regex($lib_function_conversion_regex{'reverse'}, 'reverse @array'),         '@array.reverse()',                                  'Apply Regex');
+	is(apply_regex($lib_function_conversion_regex{'reverse'}, 'reverse @array'),         '@array',                                            'Apply Regex');
 	is(apply_regex($lib_function_conversion_regex{'.='}, '$line .= "text"'),             '$line += "text"',                                   'Apply Regex');
-	is(apply_regex($lib_function_conversion_regex{'unshift'}, 'unshift @array @list'),   '@array.extendleft(@list)',                          'Apply Regex');
-	is(apply_regex($lib_function_conversion_regex{'unshift'}, 'unshift @array 0..11'),   '@array.extendleft(0..11)',                          'Apply Regex');
 	is(apply_regex($lib_function_conversion_regex{'shift'}, 'shift @array'),             '@array.pop(0)',                                     'Apply Regex');
 
 	return 1;

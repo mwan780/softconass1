@@ -101,6 +101,7 @@ sub get_function_name ( $ );
 # 0 = undefined
 %lib_function_conversion_regex = (
 	'print'   => 's/(\,\+\.\s*)?(\".*?)\\\n\s*(\")/$2$3/g',
+	'printf'   => 's/printf\s*(\".+\")\,((\s*\,?\s*\$w+\s*)*)/print $1 % $2/g',
 	'split'   => 's/split\s*\(\s*\/?\s*([\'\"\/].*[\'\"\/])\/?,\s*([^\)]+)\)?/$2.split($1)/g',
 	'join'    => 's/join\s*\(\s*\/?\s*(.+?)\/?,\s*([^\)]+)\)?/$1.join($2)/g',
 	'chomp'   => 's/chomp\s*\(?\s*(\S+)\s*/$1 = $1.rstrip()/g',
@@ -185,13 +186,13 @@ sub has_pre_dec ( $ ) {
 sub has_post_inc ( $ ) {
 	my ($line) = @_;
 	$line = strip_quoted_expressions($line);
-	return $line =~ /\w\+\+/;
+	return $line =~ /\w(\[.+\])?\+\+/;
 }
 
 sub has_post_dec ( $ ) {
 	my ($line) = @_;
 	$line = strip_quoted_expressions($line);
-	return $line =~ /\w\-\-/;
+	return $line =~ /\w(\[.+\])?\-\-/;
 }
 
 sub has_prepost_incdec ( $ ) {
@@ -243,6 +244,11 @@ sub has_unix_filter ( $ ) {
 sub has_reverse_function_call ( $ ) {
 	my ($line) = @_;
 	return $line =~ /reverse\s*\@\w+/;
+}
+
+sub has_no_args ( $ ) {
+	my ($line) = @_;
+	return $line !~ /\w+\W+\w+/;
 }
 
 # #############################################################################################
@@ -347,7 +353,7 @@ sub is_for_var_in_set ( $ ) {
 
 sub is_prepost_incdec_line ( $ ) {
 	my ($line) = @_;
-	return $line =~ /^\s*((((\-\-)|(\+\+))\$\w+)|(\$\w+((\-\-)|(\+\+))))\s*$/;
+	return $line =~ /^\s*((((\-\-)|(\+\+))[\$\@\%]\w+)|([\$\@\%]\w+(\[.+?\])?((\-\-)|(\+\+))))\s*$/;
 }
 
 sub is_while_statement_line ( $ ) {
@@ -381,6 +387,12 @@ sub is_unix_filter_pattern_line ( $ ) {
 	my ($line) = @_;
 	return $line =~ /^\s*while\s*\(?\s*(.+)?\s*\=?\s*\<(.*)?\>\s*\)?\s*\{?\s*$/;		
 }
+
+sub is_array_element_assignment_line ( $ ) {
+	my ($line) = @_;
+	return $line =~ /\$\w+\[.+?\]/;
+}
+
 
 # #############################################################################################
 # #############################################################################################
@@ -531,11 +543,11 @@ sub strip_quoted_expressions ( $ ) {
 sub strip_quoted_variables ( $ ) {
 	my ($line) = @_;
 	debug("Print :- stripping $line quotes");
-	$line =~ s/[\"\']\s*(\$\w+(\[.+\])?)\s*[\"\']/$1 /g;
+	$line =~ s/[\"\']\s*([\$\@\%]\w+(\[.+\])?)\s*[\"\']/$1 /g;
 	debug("Print :- stripping $line quotes");
-	$line =~ s/(\"[^\.\+\,\"\$]*)\$(\w+)([^\.\+\,\"\$]*)/$1\" + $2 + \"$3/g;
+	$line =~ s/(\"[^\.\+\,\"\$]*)[\$\@\%](\w+)([^\.\+\,\"\$]*)/$1\" + $2 + \"$3/g;
 	$line =~ s/\./\+/g;
-	$line =~ s/[\"\']\s*[^\.\+]?\s*(\$\w+?)\s*[^\.\+]?\s*[\"\']/$1 /g;
+	$line =~ s/[\"\']\s*[^\.\+]?\s*([\$\@\%]\w+?)\s*[^\.\+]?\s*[\"\']/$1 /g;
 	$line =~ s/\"\"\s*\+\s*//g;
 	$line =~ s/\"\"\s*//g;
 	$line =~ s/\s*\+\s*$//g;
@@ -583,7 +595,7 @@ sub get_for_statement_postexec ( $ ) {
 
 sub get_post_var( $ ) {
 	my ($line) = @_;
-	return strip_outer_spaces($1) if $line =~ /(\$?[A-Za-z_]+)((\-\-)|(\+\+))/;
+	return strip_outer_spaces($1) if $line =~ /(\$?[A-Za-z_]+(\[.+\])?)((\-\-)|(\+\+))/;
 	return "";
 }
 
@@ -677,6 +689,15 @@ sub get_unix_filter_input_source ( $ ) {
 	return "";
 }
 
+sub get_array_element ( $ ) {
+	my ($line) = @_;
+	return strip_outer_spaces($1) if $line =~ /\$\w+\[(.+?)\]/;
+} 
+sub get_array_name ( $ ) {
+	my ($line) = @_;
+	return strip_outer_spaces($1) if $line =~ /(\$\w+)\[.+?\]/;	
+}
+
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Purpose:-     Applies regex statement to string and returns the result       %
 # Prototype:-   string apply_regex($regex, $line)                              %
@@ -697,3 +718,5 @@ sub apply_regex ( $$ ) {
 
 
 1;
+
+

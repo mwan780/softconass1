@@ -165,21 +165,21 @@ sub store_variables ( $ ) {
 	my $input_string = join ('', @{$Input});
 	$input_string = strip_quoted_expressions($input_string);
 	my %code_variables = ();
-	my @scalars_found = $input_string =~ /(\$\w+[^\[\{])\W/g;
+	my @scalars_found = $input_string =~ /\$(\w+)[^\[\{]\W/g;
 	foreach my $scalar (@scalars_found) {
 		if(!exists $code_variables{'scalars'}{$scalar}) {
 			debug("$scalar");
 			$code_variables{'scalars'}{$scalar} = 0;
 		}
 	}
-	my @arrays_found = $input_string =~ /(\@\w+\W/g;
+	my @arrays_found = $input_string =~ /\@(\w+)\W/g;
 	foreach my $array (@arrays_found) {
 		if(!exists $code_variables{'arrays'}{$array}) {
 			debug("$array");
 			$code_variables{'arrays'}{$array} = 0;
 		}
 	}
-	my @hashes_found = $input_string =~ /(\%\w+\W/g;
+	my @hashes_found = $input_string =~ /\%(\w+)\W/g;
 	foreach my $hash (@hashes_found) {
 		if(!exists $code_variables{'hashes'}{$hash}) {
 			debug("$hash");
@@ -423,10 +423,8 @@ sub convert_to_python ( $$$$ ) {
 					# #######  Variable Declaration  #########
 					# #######################################
 					debug("Line Type:- Variable Declaration ");
+					$single_line =~ s/\=\s*\(\)/= []/g;
 					output_python_line($tab_depth, "$single_line", $Output);
-					while($single_line =~ /[\$\@\%](\w+)/g) {
-						#$vars{$line}{$1} = 1;	# This may be useful later otherwise delete it
-					}
 				} elsif (is_function_declaration($single_line)) { 
 					# #######################################
 					# #######  Function Declaration  ########
@@ -452,7 +450,17 @@ sub convert_to_python ( $$$$ ) {
 					# #######################################
 					# #######  Pre/Post Inc/Dec Line  #######
 					# #######################################
-					output_python_line($tab_depth, "$single_line", $Output);
+					debug("Line Type:- PrePost IncDec Line");
+					if (is_array_element_assignment_line($single_line)) {
+						my $element = get_array_element($single_line); 
+						my $array = get_array_name($single_line);
+						output_python_line($tab_depth, "if $element in $array:", $Output);
+						output_python_line($tab_depth+1, "$single_line", $Output);
+						output_python_line($tab_depth, "else:", $Output);
+						output_python_line($tab_depth+1, "$array\[$element\] = 0", $Output);
+					} else {
+						output_python_line($tab_depth, "$single_line", $Output);
+					}
 				} elsif (is_if_line($single_line)) {
 					# #######################################
 					# ########### If Statements #############
@@ -473,6 +481,7 @@ sub convert_to_python ( $$$$ ) {
 					if(is_unix_filter_pattern_line($single_line)) {
 						my $input_var = get_unix_filter_input_variable($single_line);
 						my $input_source = get_unix_filter_input_source($single_line);
+						$input_var = '$_' if $input_var !~ /\$/;
 						output_python_line($tab_depth, "for $input_var in $input_source:", $Output);
 					} else {
 						my $condition = get_while_condition($single_line);
@@ -490,7 +499,11 @@ sub convert_to_python ( $$$$ ) {
 					$print_line = strip_new_line($print_line) if has_explicit_new_line($print_line);
 					
 					$print_line = strip_quoted_variables($print_line);
-					$print_line = convert_to_system_out($print_line) if !has_explicit_new_line($single_line) && $system_lib;					
+
+					if (!has_explicit_new_line($single_line)) {
+						$print_line = convert_to_system_out($print_line) if $system_lib;					
+						$print_line .= ',' if !$system_lib;
+					}
 					output_python_line($tab_depth, "$print_line", $Output);
 
 				} elsif (is_single_word_line(strip_outer_spaces($single_line))) {
@@ -506,7 +519,8 @@ sub convert_to_python ( $$$$ ) {
 						# ###### Assumed Lib Function Call ######
 						# #######################################
 						debug("Line Type:- Lib Function ");
-						output_python_line($tab_depth, "$single_line", $Output);
+						output_python_line($tab_depth, "$single_line \$_", $Output) if has_no_args($single_line);
+						output_python_line($tab_depth, "$single_line", $Output) if !has_no_args($single_line);
 					} else {
 						# #######################################
 						# ########### Undertermined #############
@@ -781,16 +795,12 @@ sub convert_lib_functions ( $ ) {
 	# Reverse traversal of words so that subfunctions (E.g. join in print statement)
 	# Can be evaluated correctly.
 	foreach my $word (reverse (split(/((\(\d+)|( )|(\d+\))|(\()|(\)))+/, strip_regex_expressions($line)))) {
-		
 		if(defined $word && defined $lib_function_conversion_regex{$word}) {
 			# Word is a Library Function
 			 debug("\n-$word-\n");
 			 debug("\n-$lib_function_conversion_regex{$word}-\n");
 			$line = apply_regex($lib_function_conversion_regex{$word}, $line);
 		}
-		$program_variables{'scalars'}{$word}++ if defined $program_variables{'scalars'}{$word};
-		$program_variables{'arrays'}{$word}++ if defined $program_variables{'arrays'}{$word};
-		$program_variables{'hashes'}{$word}++ if defined $program_variables{'hashes'}{$word};
 	}
 	return $line;
 }
