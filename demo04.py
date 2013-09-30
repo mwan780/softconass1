@@ -4,11 +4,14 @@
 import fileinput, re
 for text in fileinput.input():
     text = text.rstrip()
-    if re.match(r',', text) :
-        array = text.split(',')
-        for element in array.reverse(): 
-            element += ' - '
+    if re.search(r',', text) :
+        text += ", end, the"
+        array = text.split(', ')
+        array.reverse()
+        array = array
+        for element in array :
+            print element
         array.pop(0)
-        array.append('end')
+        array.append('start')
         text = '-'.join(array)
     print text

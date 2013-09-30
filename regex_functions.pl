@@ -104,17 +104,22 @@ sub get_function_name ( $ );
 	'split'   => 's/split\s*\(\s*\/?\s*([\'\"\/].*[\'\"\/])\/?,\s*([^\)]+)\)?/$2.split($1)/g',
 	'join'    => 's/join\s*\(\s*\/?\s*(.+?)\/?,\s*([^\)]+)\)?/$1.join($2)/g',
 	'chomp'   => 's/chomp\s*\(?\s*(\S+)\s*/$1 = $1.rstrip()/g',
-	'//'      => 's/(\S+)\s*=~\s*\/(.*?)\/g?/re.match(r\'$2\', $1)/g',
+	'//'      => 's/(\S+)\s*=~\s*\/(.*?)\/g?/re.search(r\'$2\', $1)/g',
 	'///'     => 's/(\S+)\s*=~\s*s\/(.*?)\/(.*?)\/g?/$1 = re.sub(r\'$2\', \'$3\', $1)/g',
-	'//i'     => 's/(\S+)\s*=~\s*\/(.*?)\/g?i/re.match(r\'(?i)$2\', $1)/g',
+	'//i'     => 's/(\S+)\s*=~\s*\/(.*?)\/g?i/re.search(r\'(?i)$2\', $1)/g',
 	'///i'    => 's/(\S+)\s*=~\s*s\/(.*?)\/(.*?)\/g?i/$1 = re.sub(r\'(?i)$2\', \'$3\', $1)/g',
 	'push'    => 's/push\s*\(?\s*(\@\w+?)\s*,\s*([\$\"\']?\w+[\'\"]?)\s*\)?/$1.append($2)/g',
 	'pop'     => 's/pop\s*\(?\s*(\@\w+)\s*\)?\s*/$1.pop()/g',
 	'shift'   => 's/shift\s*\(?\s*(\@\w+)\s*\)?\s*/$1.pop(0)/g',
 	'unshift' => 's/unshift\s*\(?\s*(\@\w+)\s*,python \s*(\@\w+)\s*\)?\s*/$1.extendleft($2)/g',
-	'reverse' => 's/reverse\s*\(?(\@\w+)\s*\)?\s*/$1.reverse()/g',
+	'reverse' => 's/reverse\s*\(?(\@\w+)\s*\)?\s*/$1/g',
 	'.='      => 's/\.\=/\+\=/g',
 	'..'      => 's/\s*\((.+)\s*\.\.\s*(.+)\)\s*/ range($1, ($2+1))/',
+	'return'  => 's/\s*return\s*(.+)/return $1/',
+	'last'    => 's/last/break/g',
+	'next'    => 's/next/continue/g',	
+	'sub'     => 's/sub/def/g',
+	'my'      => 's/my//g',
 );
 
 # #############################################################################################
@@ -233,6 +238,11 @@ sub has_lib_function_call ( $ ) {
 sub has_unix_filter ( $ ) {
 	my ($line) = @_;
 	return $line =~ /\<\>/;
+}
+
+sub has_reverse_function_call ( $ ) {
+	my ($line) = @_;
+	return $line =~ /reverse\s*\@\w+/;
 }
 
 # #############################################################################################
@@ -465,6 +475,7 @@ sub strip_invalid_python ( $ ) {
 	$line = strip_at_signs($line);
 	#print "should be no dol signs here :- $line\n";
 	my @valid_python = convert_prepost_incdec($line);
+
 	#debug("Produced Output:- @valid_python");
 	return @valid_python;
 }

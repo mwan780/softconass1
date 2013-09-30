@@ -1,43 +1,489 @@
 #!/usr/bin/python2.7 -u
+# #############################################################################################
+# #############################################################################################
+# ###############################                          ####################################
+# ###############################     Perl To Python       ####################################
+# ###############################                          ####################################
+# #############################################################################################
+# #############################################################################################
+# #######  Lecturer   :- Andrew Taylor                           ##############################
+# #######  Course     :- COMP2041 Software Construction          ##############################
+# #######  Author     :- Steven Falconieri                       ##############################
+# #######  Znumber    :- z3419220                                ##############################
+# #######  Created    :- September 2013                          ##############################
+# #######  Assignment :- Perl2Python                             ##############################
+# #######  Language   :- Perl                                    ##############################
+# #######  Requires   :- perl2python.pl, unit_tests.pl           ##############################
+# #######  Description:- Contains Regex Functions associated with         #####################
+# #######                perl2python translation. Functions are           #####################
+# #######                grouped into five categories                     #####################
+# #######                (has, is, strip, get & apply) of with different  #####################
+# #######                purposes and return types for simplicity.        #####################
+# #############################################################################################
+# #############################################################################################
+# #############################################################################################
+# ############################       Function Prototypes      #################################
+# #############################################################################################
+# #############################################################################################
+# #############################################################################################
+import sys, re
 
-# Print Tests
 
-# Standard Print
-print "Hello World",
-# New Line
-print ""
-print "Hello World",
-# Standard Print Line Variations
-print "HelloWorld"
-print "Hello","World",""
-print "Hello"."World".""
+%keywords = (
+# 'last'  => 'break',
+# 'next'  => 'continue',
+# '=~ s/' => 're.sub',
+# '=~ /'  => 're.match',
+# 'sub'   => 'def',
+# )
+# 0 = undefined
+%lib_function_conversion_regex = (
+# 'print'   => 's/(\,\+\.\s*)?(\".*?)\\\n\s*(\")/23/g',
+# 'split'   => 's/split\s*\(\s*\/?\s*([\'\"\/].*[\'\"\/])\/?,\s*([^\)]+)\)?/2.split(1)/g',
+# 'join'    => 's/join\s*\(\s*\/?\s*(.+?)\/?,\s*([^\)]+)\)?/1.join(2)/g',
+# 'chomp'   => 's/chomp\s*\(?\s*(\S+)\s*/1 = 1.rstrip()/g',
+# '//'      => 's/(\S+)\s*=~\s*\/(.*?)\/g?/re.match(r\'2\', 1)/g',
+# '///'     => 's/(\S+)\s*=~\s*s\/(.*?)\/(.*?)\/g?/1 = re.sub(r\'2\', \'3\', 1)/g',
+# '//i'     => 's/(\S+)\s*=~\s*\/(.*?)\/g?i/re.match(r\'(?i)2\', 1)/g',
+# '///i'    => 's/(\S+)\s*=~\s*s\/(.*?)\/(.*?)\/g?i/1 = re.sub(r\'(?i)2\', \'3\', 1)/g',
+# 'push'    => 's/push\s*\(?\s*(\\w+?)\s*,\s*([\$\"\']?\w+[\'\"]?)\s*\)?/1.append(2)/g',
+# 'pop'     => 's/pop\s*\(?\s*(\\w+)\s*\)?\s*/1.pop()/g',
+# 'shift'   => 's/shift\s*\(?\s*(\\w+)\s*\)?\s*/1.pop(0)/g',
+# 'unshift' => 's/unshift\s*\(?\s*(\\w+)\s*,python \s*(\\w+)\s*\)?\s*/1.extendleft(2)/g',
+# 'reverse' => 's/reverse\s*\(?(\\w+)\s*\)?\s*/1.reverse()/g',
+# '.='      => 's/\.\=/\+\=/g',
+# '..'      => 's/\s*\((.+)\s*\.\.\s*(.+)\)\s*/ range(1, (2+1))/',
+# 'return'  => 's/\s*return\s*(.+)/return 1/',
+# 'last'    => 's/last/break/g',
+# 'next'    => 's/next/continue/g',
+# 'sub'     => 's/sub/def/g',
+# 'my'     => 's/my//g',
+# )
 
-integer=123
-print integer ,
-print ""
-print integer .""
-print integer ,""
-print integer,
-print ""
-print integer.""
-print integer,""
+# #############################################################################################
+# #############################################################################################
+# #############################################################################################
+# ##############################     Has  Regex Functions          ############################
+# #############################################################################################
+# #############################################################################################
+# #############################################################################################
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Purpose:-     Returns result of regex match on line parsed                   %
+# Prototype:-   void match_description($line)                                  %
+# Param string  $line      :- Content to compare to match on                   %
+# Returns                  :- boolean                                          %
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def has_opening_brace(line):
+    line = strip_quoted_expressions(line)
+    return re.match(r'\{', line)
 
-string=Hello
-print string ,
-print ""
-print string .""
-print string ,""
-print string,
-print ""
-print string.""
-print string,""
+def has_strictly_closing_brace(line):
+    line = strip_quoted_expressions(line)
+    return re.match(r'^[^\{]*\}', line)
+def has_strictly_opening_brace(line):
+    line = strip_quoted_expressions(line)
+    return re.match(r'^[^\}\{]*\{[^\{\}]*$', line)
 
-metachars="hel-/\$"
-print metachars ,
-print ""
-print metachars .""
-print metachars ,""
-print metachars,
-print ""
-print metachars.""
-print metachars,""
+def has_both_braces(line):
+    line = strip_quoted_expressions(line)
+    return re.match(r'^[^\{\}]*[\{\}][^\}\{]*[\}\{][^\{\}]*$', line)
+
+def has_closing_then_opening_braces(line):
+    line = strip_quoted_expressions(line)
+    return re.match(r'^[^\}]*\}[^\{]*\{[^\{\}]*$', line)
+
+def has_opening_then_closing_braces(line):
+    line = strip_quoted_expressions(line)
+    return re.match(r'^[^\{]*\{[^\}]*\}[^\{\}]*$', line)
+
+def has_pre_inc(line):
+    line = strip_quoted_expressions(line)
+    return re.match(r'\+\+\$?\w', line)
+
+def has_pre_dec(line):
+    line = strip_quoted_expressions(line)
+    return re.match(r'\-\-\$?\w', line)
+
+def has_post_inc(line):
+    line = strip_quoted_expressions(line)
+    return re.match(r'\w\+\+', line)
+
+def has_post_dec(line):
+    line = strip_quoted_expressions(line)
+    return re.match(r'\w\-\-', line)
+
+def has_prepost_incdec(line):
+    # post dec or post inc
+    # .-- || .++
+    # pre dec or pre inc
+    # --. || ++.
+    return (has_pre_inc(line)  or  has_pre_dec(line)  or  has_post_inc(line)  or  has_post_dec(line))
+
+def has_print_call(line):
+    line = strip_quoted_expressions(line)
+    return re.match(r'(\s|^)print\s*', line)
+
+def has_regex(line):
+    line = strip_quoted_expressions(line)
+    return re.match(r'\=\~', line)
+
+def has_system_access(line):
+    line = strip_quoted_expressions(line)
+    return re.match(r'((open)|(close)|(STDIN)|(STDOUT)|(STDERR)|(\sys.stdout.write())|(\sys.stderr.write())|(sys.argv))', line)
+
+def has_explicit_new_line(line):
+    return re.match(r'\".*?\\n\.*?"', line)
+
+def has_lib_function_call(line):
+    line = strip_quoted_expressions(line)
+    for  word in line.split(/((\(|( ))/)) :
+        if  :
+    return ''
+
+def has_unix_filter(line):
+    return re.match(r'\<\>', line)
+
+# #############################################################################################
+# #############################################################################################
+# #############################################################################################
+# ##############################      Is  Regex Functions          ############################
+# #############################################################################################
+# #############################################################################################
+# #############################################################################################
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Purpose:-     Returns result of regex match on line parsed                   %
+# Prototype:-   void match_description($line)                                  %
+# Param string  $line      :- Content to compare to match on                   %
+# Returns                  :- boolean                                          %
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def is_empty_line(line):
+    return re.match(r'^\s*$', line)
+
+def is_var_declaration_line(line):
+    return re.match(r'^\s*[\$\\%]\w+.*?\s*\=\s*[\"\']?.*[\"\']?\s*$', line)
+
+def is_closing_brace_line(line):
+    line = strip_quoted_expressions(line)
+    return re.match(r'^\s*\}\s*$', line)
+
+def is_opening_brace_line(line):
+    line = strip_quoted_expressions(line)
+    return re.match(r'^\s*\{\s*$', line)
+
+def is_comment_line(line):
+    return re.match(r'^\s*\#.*$', line)
+
+def is_else_line(line):
+    line = strip_quoted_expressions(line)
+    return re.match(r'^\s*\}?\s*else\s*\{?\s*$', line)
+
+def is_elsif_line(line):
+    line = strip_quoted_expressions(line)
+    return re.match(r'^\s*\}?\s*elsif\s*\(.+\)\s*\{?\s*$', line)
+
+def is_print_line(line):
+    #$line = strip_quoted_expressions($line)
+    return line =~ /^\s*print\s*\(?\s*(((\"[^\"]+\"\s*)|(\s*\$\w+\s*))\s*[\.\,\+\*\-\/]\s*)*((\"[^\"]+\"\s*)|(\s*\$\w+\s*))\)?\s*$/
+
+def is_if_line(line):
+    line = strip_quoted_expressions(line)
+    return (is_standard_if(line)  or  is_reverse_order_if_line(line)  or  is_else_line(line)  or  is_elsif_line(line))
+
+def is_standard_if(line):
+    line = strip_quoted_expressions(line)
+    return re.match(r'^\s*if\s*\(?.*\)?\s*$', line)
+
+def is_reverse_order_if_line(line):
+    line = strip_quoted_expressions(line)
+    return re.match(r'\s*?.+?\sif\s*\(?.*\)?\s*$', line)
+
+def is_for_statement(line):
+    line = strip_quoted_expressions(line)
+    return re.match(r'^\s*for(each)?.*\s*$', line)
+
+def is_standard_for_statement_line(line):
+    line = strip_quoted_expressions(line)
+    return line =~ /\s*for\s*\(\s*.*?
+    # .*?
+    # .*?\)\s*\{?\s*$/
+
+def is_foreach_statement_line(line):
+    line = strip_quoted_expressions(line)
+    return re.match(r'\s*foreach\s*(.*?)\s*(\(.*?\))\s*\{?\s*$', line)
+
+def is_for_var_in_set(line):
+    line = strip_quoted_expressions(line)
+    return re.match(r'\s*for\s*(.*?)\s*in\s*(\(?.*?\)?)\s*\{?\s*$', line)
+
+def is_prepost_incdec_line(line):
+    return re.match(r'^\s*((((\-\-)|(\+\+))\$\w+)|(\$\w+((\-\-)|(\+\+))))\s*$', line)
+
+def is_while_statement_line(line):
+    line = strip_quoted_expressions(line)
+    return re.match(r'^\s*while\(?.*?\)\s*\{?\s*$', line)
+
+def is_single_word_line(line):
+    return re.match(r'^\S+$', line)
+
+def is_function_declaration(line):
+    line = strip_quoted_expressions(line)
+    return line =~ /^\s*sub\s+(\w+)\s*(\(?.*?\)?)?\s*[\
+    # \{]?\s*$/
+
+def is_function_arg_dec_line(line):
+    return re.match(r'^\s*my.*?\(.*\$.+?\)+\s*=.*?\_.*\s*$', line)
+
+def is_single_condition(line):
+    return line  not ~ /((\&\&)|(\|\|))/
+
+def is_unix_filter_pattern_line(line):
+    return re.match(r'^\s*while\s*\(?\s*(.+)?\s*\=?\s*\<(.*)?\>\s*\)?\s*\{?\s*$', line)
+
+# #############################################################################################
+# #############################################################################################
+# #############################################################################################
+# ##############################    Strip  Regex Functions          ###########################
+# #############################################################################################
+# #############################################################################################
+# #############################################################################################
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Purpose:-     Performs substitution regex on line parsed to remove specific  %
+#               characters/sequences                                           %
+# Prototype:-   string strip_content_to_remove($line)                          %
+# Param string  $line      :- Content to strip chars/sequences from            %
+# Returns                  :- string Result of regex substitution              %
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def strip_outermost_parentheses(line):
+    no_parentheses_line = line
+    no_parentheses_line = re.sub(r'\(', '', no_parentheses_line)
+    no_parentheses_line = re.sub(r'\)(.*)$', '1', no_parentheses_line)
+    return strip_outer_spaces(no_parentheses_line)
+
+def strip_outermost_braces(line):
+    no_braces_line = line
+    # Also replaces first occuring brace with a :
+    no_braces_line = re.sub(r'^([^\{]*)\{', '1:', no_braces_line)
+    no_braces_line = re.sub(r'^(.*)\}([^\}]*$)', '12', no_braces_line)
+    return strip_outer_spaces(no_braces_line)
+
+def strip_dollar_signs(line):
+    var_line = line
+    var_line = re.sub(r'\$(\w+)', '1', var_line)
+    return strip_outer_spaces(var_line)
+
+def strip_new_line(line):
+    line = re.sub(r'(\".*)\\n(\s*\")\s*$', '12', line)
+    return strip_outer_spaces(line)
+
+def strip_at_signs(line):
+    line = re.sub(r'\', '', line)
+    return strip_outer_spaces(line)
+
+def strip_logic_operators(line):
+    line = re.sub(r'\&\&', ' and ', line)
+    line = re.sub(r'\|\|', ' or ', line)
+    line =~ s/\ not / not /g if line  not ~ /\#\ not /
+    return strip_outer_spaces(line)
+
+def strip_input_methods(line):
+    line = re.sub(r'\<\>', 'fileinput.input()', line)
+    line = re.sub(r'\<STDIN\>', 'sys.stdin.readline()', line)
+    line = re.sub(r'\<STDOUT\>', 'sys.stdout.write()', line)
+    line = re.sub(r'\<STDERR\>', 'sys.stderr.write()', line)
+    line = re.sub(r'\sys.stdout.write()', 'sys.stdout.write()', line)
+    line = re.sub(r'\$\#sys.argv', 'len(sys.argv) - 1', line)
+    line = re.sub(r'\sys.stderr.write()', 'sys.stderr.write()', line)
+    line = re.sub(r'len\(\sys.argv[1:]\)', 'len(sys.argv)', line)
+    line = re.sub(r'\sys.argv\[(.*)\]', 'sys.argv[1+1]', line)
+    line = re.sub(r'\sys.argv[1:]', 'sys.argv[1:]', line)
+    line = re.sub(r'sys.argv', 'sys.argv', line)
+    return strip_outer_spaces(line)
+
+def strip_comparators(line):
+    line = re.sub(r'\seq\s', ' == ', line)
+    line = re.sub(r'\sne\s', '  not = ', line)
+    return strip_outer_spaces(line)
+
+def strip_invalid_python(line):
+    #debug("Given Output:- $line")
+    line = strip_semi_colon(line)
+    line = strip_logic_operators(line)
+    line = strip_comparators(line)
+    line = strip_input_methods(line)
+    line = convert_lib_functions(line)
+    line = strip_dollar_signs(line)
+    line = strip_at_signs(line)
+    #print "should be no dol signs here :- $line\n"
+    valid_python = convert_prepost_incdec(line)
+    #debug("Produced Output:- @valid_python")
+    return valid_python
+
+def strip_semi_colon(line):
+    line =~ s/\
+    # //g
+    return strip_outer_spaces(line)
+
+def strip_prepost_incdec(line):
+    line = re.sub(r'((\-\-)|(\+\+))', '', line)
+    return strip_outer_spaces(line)
+
+def strip_outer_spaces(line):
+    line = re.sub(r'^\s*', '', line)
+    line = re.sub(r'\s*$', '', line)
+    return line
+
+def strip_condition_padding(line):
+    line = strip_semi_colon(line)
+    line = strip_outer_spaces(line)
+    line = strip_outermost_braces(line)
+    line = strip_outermost_parentheses(line)
+    line = strip_outer_spaces(line)
+    line = "(".line.")" if  not is_single_condition(line)
+    return line
+
+def strip_regex_expressions(line):
+    line =~ s/([^\/]*)s\/[^\/]*\/[^\/]*\/g?(.*)$/1\/\/\/2/g
+    while line =~ /^(.*?\/.*?\/.*?*[^\/]*)m?\/[^\/]+\/(.*)$/:
+        line =~ s/^((.*?\/.*?\/.*?)*[^\/]*)m?\/[^\/]+\/g?(.*)$/1\/\/3/g
+    return line
+
+def strip_quoted_expressions(line):
+    line = strip_regex_expressions(line)
+    while line =~ /^(.*?\".*?\".*?*[^\"]*)\"[^\"]+\"(.*)$/:
+        line = re.sub(r'^((.*?\".*?\".*?)*[^\"]*)\"[^\"]+\"(.*)$', '1\"\"3', line)
+    return line
+
+def strip_quoted_variables(line):
+    # debug("Print :- stripping line quotes")
+    line = re.sub(r'[\"\']\s*(\$\w+(\[.+\])?)\s*[\"\']', '1 ', line)
+    # debug("Print :- stripping line quotes")
+    line = re.sub(r'(\"[^\.\+\,\"\$]*)\$(\w+)([^\.\+\,\"\$]*)', '1\" + 2 + \"3', line)
+    line = re.sub(r'\.', '\+', line)
+    line = re.sub(r'[\"\']\s*[^\.\+]?\s*(\$\w+?)\s*[^\.\+]?\s*[\"\']', '1 ', line)
+    line = re.sub(r'\"\"\s*\+\s*', '', line)
+    line = re.sub(r'\"\"\s*', '', line)
+    line = re.sub(r'\s*\+\s*$', '', line)
+    
+    # debug("Print Output :- stripped line quotes")
+    return strip_outer_spaces(line)
+
+# #############################################################################################
+# #############################################################################################
+# #############################################################################################
+# ##############################     Get  Regex Functions          ############################
+# #############################################################################################
+# #############################################################################################
+# #############################################################################################
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Purpose:-     Returns capture part of regex match on line parsed             %
+# Prototype:-   void match_description($line)                                  %
+# Param string  $line      :- Content to compare to match on                   %
+# Returns                  :- string                                           %
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def get_print(line):
+    if line =~ /^\s*print\s*\(?\s*(((\"[^\"]+\"\s*|(\s*\$\w+\s*))\s*[\.\,\+\-\/\*]\s*)*((\"[^\"]+\"\s*)|(\s*\$\w+\s*))\s*\)?)/ : return strip_outer_spaces(1)
+    return ""
+
+def get_for_statement_init(line):
+    if re.match(r'\s*for\s*\\s*(.*?.*?.*?\)\s*\:?\s*$', line) : return strip_outer_spaces(1)
+    # .*?
+    # .*?\)\s*\{?\s*$/
+    return ""
+
+def get_for_statement_condition(line):
+    if re.match(r'\s*for\s*\\s*.*?(.*?.*?\)\s*\:?\s*$', line) : return strip_outer_spaces(1)
+    # (.*?)
+    # .*?\)\s*\{?\s*$/
+    return ""
+
+def get_for_statement_postexec(line):
+    if re.match(r'\s*for\s*\\s*.*?.*?\s*(.*?\)\s*\:?\s*$', line) : exec_lines = split /,/, 1
+    # .*?
+    # \s*(.*?)\)\s*\{?\s*$/
+    return exec_lines
+
+def get_post_var(line):
+    if re.match(r'\$?[A-Za-z_]+((\-\-)|(\+\+))', line) : return strip_outer_spaces(1)
+    return ""
+
+def get_pre_var(line):
+    if re.match(r'(\-\-|(\+\+))(\$?[A-Za-z_]+)', line) : return strip_outer_spaces(4)
+    return ""
+
+def get_incdec_op(line):
+    if (has_post_inc(line  or  has_pre_inc(line))) : return "+"
+    if (has_post_dec(line  or  has_pre_dec(line))) : return "-"
+
+def get_if_condition(line):
+    if re.match(r'^\s*if\s*\(.*\)', line) : return strip_outer_spaces(1)
+    return ""
+
+def get_if_routine(line):
+    if re.match(r'^\s*if\s*\(.*?\)\s*\:(.*)\', line) : return strip_outer_spaces(2)
+    return ""
+
+def get_reverse_if_condition(line):
+    if re.match(r'\s*.+\s+if\s*(\(?.+\)?)\s*\?\s*$', line) : return strip_condition_padding(2)
+    # ?\s*$/
+    return ""
+
+def get_reverse_if_routine(line):
+    if re.match(r'\s*.+\s+if\s*(\(?.+\)?)\s*\?\s*$', line) : return strip_outer_spaces(1)
+    # ?\s*$/
+    return ""
+
+def get_foreach_var(line):
+    if re.match(r'\s*foreach\s*.*?\s*(\(.*?\))\s*\:?\s*$', line) : return strip_outer_spaces(1)
+    return ""
+
+def get_foreach_set(line):
+    if re.match(r'\s*foreach\s*.*?\s*(\(.*?\))\s*\:?\s*$', line) : return strip_outer_spaces(2)
+    return ""
+
+def get_while_condition(line):
+    if re.match(r'^\s*while\s*\?(.*?\)\s*\:?\s*$', line) : return strip_outer_spaces(1)
+    return ""
+
+def get_function_prototype_args(line):
+    if  not re.match(r'^\s*sub\s+(\w+\s*(\(.*?\))\s*\:?\s*$', line)) : return ""
+    args = 2
+    arguments = ()
+    arg_num = 0
+    while args =~ /[\$\\%]/g:
+        arg_num += 1
+    return strip_outer_spaces("(".join(', ', arguments).")")
+
+def get_function_defined_args(line):
+    if re.match(r'^\s*my.*?\(.*\$.+?\)+\s*=.*?\_.*\s*$', line) : return strip_outer_spaces(1)
+    return ""
+
+def get_function_name(line):
+    if re.match(r'^\s*sub\s+\w+\s*(\(?.*?\)?)\s*\:?\s*$', line) : return strip_outer_spaces(1)
+    return ""
+
+def get_unix_filter_input_variable(line):
+    if re.match(r'^\s*while\s*\?\s*(.+?\s*\=?\s*(\<.*?\>)\s*\)?\s*\:?\s*$', line) : return strip_outer_spaces(1)
+    return ""
+
+def get_unix_filter_input_source(line):
+    if re.match(r'^\s*while\s*\?\s*(.+?\s*\=?\s*(\<.*?\>)\s*\)?\s*\:?\s*$', line) : return strip_outer_spaces(2)
+    return ""
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Purpose:-     Applies regex statement to string and returns the result       %
+# Prototype:-   string apply_regex($regex, $line)                              %
+# Param string  $regex     :- Regex statement to apply                         %
+# Param string  $string    :- Content to apply regex to                        %
+# Returns                  :- string                                           %
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def apply_regex(regex, string):
+    #debug("string is $string")
+    #debug("regex  is $regex");
+    # debug("eval string =~ regex")
+    # eval "\string =~ regex"
+    #debug("eval result = $?")
+    #debug("$string");
+    return string
+
+
+# 1

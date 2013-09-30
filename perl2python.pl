@@ -74,6 +74,7 @@ sub convert_for_statement_to_python ( $$$$ );
 sub convert_prepost_incdec ( $ );
 sub convert_set_to_python ( $ );
 sub import_libraries ( $ );
+sub store_variables ( $ );
 
 
 
@@ -110,7 +111,7 @@ foreach my $file (@ARGV) {
 	@perl_input = <PERL>;
 	# Get Reference to Input Contents
 	$Perl_ref = \@perl_input;
-	store_variables($Perl_ref);
+	%program_variables = store_variables($Perl_ref);
 
 
 	# Create Empty Array for Output Contents
@@ -164,17 +165,28 @@ sub store_variables ( $ ) {
 	my $input_string = join ('', @{$Input});
 	$input_string = strip_quoted_expressions($input_string);
 	my %code_variables = ();
-	my @scalars_found = $input_string =~ /(\$\w+)\W/g;
+	my @scalars_found = $input_string =~ /(\$\w+[^\[\{])\W/g;
 	foreach my $scalar (@scalars_found) {
 		if(!exists $code_variables{'scalars'}{$scalar}) {
 			debug("$scalar");
-			my $type = 'str';
-			
-
-			$code_variables{'scalars'}{$scalar} = $type;
-
+			$code_variables{'scalars'}{$scalar} = 0;
 		}
 	}
+	my @arrays_found = $input_string =~ /(\@\w+\W/g;
+	foreach my $array (@arrays_found) {
+		if(!exists $code_variables{'arrays'}{$array}) {
+			debug("$array");
+			$code_variables{'arrays'}{$array} = 0;
+		}
+	}
+	my @hashes_found = $input_string =~ /(\%\w+\W/g;
+	foreach my $hash (@hashes_found) {
+		if(!exists $code_variables{'hashes'}{$hash}) {
+			debug("$hash");
+			$code_variables{'hashes'}{$hash} = 0;
+		}
+	}
+	return %code_variables;
 }
 
 
@@ -199,15 +211,19 @@ sub store_variables ( $ ) {
 sub output_python ( $$$ ) {
 	my ($tab_depth, $python, $Output) = @_;
 	my @valid_python = strip_invalid_python($python);
-	$python =~ /(\s*)$/;
+	$python =~ /(\s+)$/;
 	my $trailing_space = $1;
 	my $indentation = "";
 	for my $count (0..$tab_depth-1) {
 			$indentation .= "    ";
 	}
+	my $counter;
 	foreach my $python_line (@valid_python) {
 		# $output[last element]
-		push @{$Output}, "$indentation$python_line$trailing_space";
+		$counter++;
+		$python_line .= $trailing_space if defined $trailing_space;
+		push @{$Output}, "$indentation$python_line";
+		push @{$Output}, "\n" if @valid_python > 1 && $counter < @valid_python;
 	}
 }
 
@@ -357,6 +373,12 @@ sub convert_to_python ( $$$$ ) {
 				# Striping on output instead --- should be able to delete this. $single_line = strip_dollar_signs($single_line);
 				$single_line = strip_outer_spaces($single_line);
 				debug("Input:- $single_line");
+				if(has_reverse_function_call($single_line)) {
+					$single_line =~ s/reverse\s*\@(\w+)/$1/;
+					my $array = $1;
+					output_python_line($tab_depth, "$array.reverse()", $Output);
+				}
+
 				if(is_closing_brace_line($single_line)) {
 					# #######################################
 					# ###### Sole Closing Brace #############
@@ -412,7 +434,7 @@ sub convert_to_python ( $$$$ ) {
 					my $next_line = ${$Input}[$curr_line + 1];
 					chomp $next_line;
 					if(is_function_arg_dec_line($next_line) || is_opening_brace_line($next_line) || has_opening_brace($single_line)) {
-						output_python($tab_depth, "$keywords{'sub'}", $Output);
+						output_python($tab_depth, "$keywords{'sub'} ", $Output);
 						output_python(0, get_function_name($single_line), $Output);
 						if (is_function_arg_dec_line($next_line)) {
 							# If Function Argument Declaration then 
@@ -706,8 +728,12 @@ sub convert_prepost_incdec ( $ ) {
 		debug("Pre Increment or Decrement Detected on:- $line");
 		my $var = get_pre_var($line);
 		$line = strip_prepost_incdec($line);
-		push @valid_python, "$var $op= 1\n";
-		push @valid_python, $line if !is_single_word_line($line);
+		if (!is_single_word_line($line)) {
+			push @valid_python, "$var $op= 1";
+			push @valid_python, strip_outer_spaces($line);
+		} else {
+			push @valid_python, "$var $op= 1";
+		}
 	} else {
 		push @valid_python, $line;
 	}
@@ -762,6 +788,9 @@ sub convert_lib_functions ( $ ) {
 			 debug("\n-$lib_function_conversion_regex{$word}-\n");
 			$line = apply_regex($lib_function_conversion_regex{$word}, $line);
 		}
+		$program_variables{'scalars'}{$word}++ if defined $program_variables{'scalars'}{$word};
+		$program_variables{'arrays'}{$word}++ if defined $program_variables{'arrays'}{$word};
+		$program_variables{'hashes'}{$word}++ if defined $program_variables{'hashes'}{$word};
 	}
 	return $line;
 }
@@ -771,6 +800,7 @@ sub convert_to_system_out ( $ ) {
 	$line =~ s/print\s*\(?(.+)\)?\,?/sys.stdout.write($1)/i;
 	return $line;
 }
+
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

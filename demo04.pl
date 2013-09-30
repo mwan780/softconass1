@@ -4,12 +4,14 @@
 while ($text = <>) {
 	chomp $text;
 	if($text =~ /,/) {
-		@array = split(',', $text);
-		foreach $element (reverse @array) {
-			$element .= ' - ';
+		$text .= ", end, the";
+		@array = split(', ', $text);
+		@array = reverse @array;
+		foreach $element (@array) {
+			print "$element\n";
 		}
 		shift @array;
-		push @array, 'end';
+		push @array, 'start';
 		$text = join ('-', @array);
 	}
 	print "$text\n";

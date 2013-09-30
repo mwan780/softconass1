@@ -7,6 +7,7 @@ while("1") {
 while (2 > $i) {
 	print "$i\n";
 	$i++;
+	next if $i == 1;
 }
 
 while (++$k)
